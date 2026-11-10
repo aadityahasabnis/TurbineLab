@@ -93,7 +93,7 @@ function setCounterTargets(results) {
   const targets = {
     power: results.powerMW,
     efficiency: results.efficiency * 100,
-    quality: results.exitQuality * 100,
+    quality: results.exitQuality === null ? 100 : results.exitQuality * 100,
     rpm: results.rpm,
     mobilePower: results.powerMW,
     mobileEfficiency: results.efficiency * 100,
@@ -118,8 +118,11 @@ function render(state) {
 
   const status = getQualityStatus(state.results.exitQuality);
   const qualityPill = document.querySelector("#quality-status");
+  const qualityUnit = document.querySelector("#quality-value + small");
+  qualityUnit.hidden = state.results.exitQuality === null;
+  if (state.results.exitQuality === null) countElements.quality.textContent = "DRY";
   qualityPill.className = `status-pill${status === "green" ? "" : ` is-${status}`}`;
-  qualityPill.textContent = status === "red" ? "WET STEAM" : status === "amber" ? "CAUTION" : "HEALTHY";
+  qualityPill.textContent = status === "red" ? "WET STEAM" : status === "amber" ? "CAUTION" : status === "superheated" ? "SUPERHEATED" : "HEALTHY";
   qualityPill.setAttribute("aria-label", `Steam quality status: ${status}`);
 
   const warning = document.querySelector("#warning-banner");
@@ -140,7 +143,7 @@ function render(state) {
   document.querySelector("#compare-button").textContent = state.ui.compare ? "✓ Pinned" : "＋ Compare";
   document.querySelector("#compare-legend").hidden = !state.ui.compare;
   const captions = {
-    ts: "Expansion through the turbine · T–s",
+    ts: "T–s · model states; schematic saturation dome",
     pv: `Pressure-volume cycle · vₑ ≈ ${state.results.specificVolume.toFixed(2)} m³/kg`,
     efficiency: "Cycle efficiency as boiler pressure changes"
   };
@@ -150,7 +153,9 @@ function render(state) {
 }
 
 function explainResults(inputs, results) {
-  const qualityMessage = results.exitQuality < 0.85
+  const qualityMessage = results.exitQuality === null
+    ? "The exhaust is superheated, so steam quality is not defined at this state."
+    : results.exitQuality < 0.85
     ? "Exhaust moisture is high, so blade erosion risk is elevated."
     : results.exitQuality < 0.9 ? "Exhaust moisture is approaching the caution range." : "Exhaust steam quality is within the healthy range.";
   return `At ${inputs.pressureMPa.toFixed(1)} MPa and ${inputs.tempC} °C, the turbine produces ${results.powerMW.toFixed(1)} MW of electricity at ${(results.efficiency * 100).toFixed(1)}% thermal efficiency. ${qualityMessage}`;

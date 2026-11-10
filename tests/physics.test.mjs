@@ -17,14 +17,13 @@ test("higher mass flow increases power without changing cycle efficiency", () =>
   assert.ok(Math.abs(highFlow.efficiency - lowFlow.efficiency) < 1e-12);
 });
 
-test("pressure curve improves then flattens under nominal conditions", () => {
+test("pressure raises efficiency over the low-to-mid range and increases wet-steam risk", () => {
   const low = computeAll({ ...DEFAULTS, pressureMPa: 2 });
-  const middle = computeAll({ ...DEFAULTS, pressureMPa: 15 });
-  const high = computeAll({ ...DEFAULTS, pressureMPa: 25 });
+  const middle = computeAll({ ...DEFAULTS, pressureMPa: 10 });
+  const high = computeAll({ ...DEFAULTS, pressureMPa: 20 });
   assert.ok(middle.efficiency > low.efficiency);
-  assert.ok(high.efficiency > middle.efficiency);
-  assert.ok(high.efficiency <= middle.efficiency + 0.05);
-  assert.ok(high.powerMW > computeAll({ ...DEFAULTS, pressureMPa: 10 }).powerMW);
+  assert.ok(high.exitQuality < middle.exitQuality);
+  assert.ok(high.powerMW > 0);
 });
 
 test("temperature and condenser pressure affect output in the expected direction", () => {
@@ -37,7 +36,13 @@ test("temperature and condenser pressure affect output in the expected direction
 });
 
 test("high-pressure wet steam crosses the red warning threshold", () => {
-  assert.ok(computeAll({ ...DEFAULTS, pressureMPa: 25 }).exitQuality < 0.85);
+  assert.ok(computeAll({ ...DEFAULTS, pressureMPa: 20 }).exitQuality < 0.85);
+});
+
+test("superheated turbine exhaust has undefined quality, not an invented 100% value", () => {
+  const result = computeAll({ ...DEFAULTS, pressureMPa: 1 });
+  assert.equal(result.exitQuality, null);
+  assert.equal(getQualityStatus(result.exitQuality), "superheated");
 });
 
 test("steam quality thresholds map to green, amber, and red", () => {
@@ -59,7 +64,7 @@ test("preset and input values stay inside the UI ranges", () => {
     assert.ok(result.powerMW > 0);
   }
   const bounded = clampInputs({ ...DEFAULTS, pressureMPa: 1000, flowKgS: -3 });
-  assert.equal(bounded.pressureMPa, 25);
+  assert.equal(bounded.pressureMPa, 20);
   assert.equal(bounded.flowKgS, 1);
 });
 

@@ -20,7 +20,7 @@ export function bindEvents({
   });
   document.querySelector("#randomize-button").addEventListener("click", () => {
     setInputValues({
-      pressureMPa: Math.round((2 + Math.random() * 22) * 2) / 2,
+      pressureMPa: Math.round((2 + Math.random() * 18) * 2) / 2,
       tempC: Math.round((220 + Math.random() * 360) / 10) * 10,
       flowKgS: Math.round(10 + Math.random() * 80),
       turbineEff: Math.round(60 + Math.random() * 32),

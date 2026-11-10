@@ -119,7 +119,8 @@ input[type="range"]::-moz-range-thumb { width: 44px; height: 44px; border: 0; ba
 .learn-details summary { min-height: 30px; color: var(--text); cursor: pointer; font-weight: 600; }
 .learn-details p { margin: 6px 0 0; }
 .model-note { display: flex; gap: 7px; margin-top: 13px; color: var(--text-faint); font-size: 8px; line-height: 1.6; }
-.model-note span { color: var(--cyan); }
+.model-note span, .model-note a { color: var(--cyan); }
+.model-note a { text-decoration: underline; text-underline-offset: 2px; }
 
 .mobile-results { display: none; }
 

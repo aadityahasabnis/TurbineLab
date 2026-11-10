@@ -50,8 +50,8 @@
           <form id="controls-form">
             <div class="control" data-control="pressureMPa">
               <div class="control-label"><label for="pressure">Boiler pressure</label><output for="pressure" id="pressure-value">10.0 <small>MPa</small></output></div>
-              <input id="pressure" name="pressureMPa" type="range" min="1" max="25" step="0.5" value="10" aria-label="Boiler pressure in megapascals">
-              <div class="range-scale"><span>1 MPa</span><button type="button" class="quick-set" data-input="pressureMPa" data-value="15">OPTIMUM 15</button><span>25 MPa</span></div>
+              <input id="pressure" name="pressureMPa" type="range" min="1" max="20" step="0.5" value="10" aria-label="Boiler pressure in megapascals">
+              <div class="range-scale"><span>1 MPa</span><button type="button" class="quick-set" data-input="pressureMPa" data-value="15">TRY 15</button><span>20 MPa</span></div>
             </div>
             <div class="control" data-control="tempC">
               <div class="control-label"><label for="temperature">Steam temperature</label><output for="temperature" id="temperature-value">500 <small>°C</small></output></div>
@@ -171,7 +171,7 @@
             <div><p class="eyebrow">06 / ENERGY BALANCE</p><h2>Follow the energy</h2></div>
             <span class="balance-tag"><span class="balance-check">✓</span> BALANCED</span>
           </div>
-          <p class="panel-note">Every unit of heat is accounted for. Select a flow to inspect its share.</p>
+          <p class="panel-note">Cycle heat input is balanced against net shaft work and rejected heat. Select a flow to inspect its share.</p>
           <div class="sankey-scroll">
             <svg id="sankey-chart" viewBox="0 0 760 220" role="img" aria-label="Energy flow diagram showing heat input divided into work and waste heat, then electricity and generator loss"></svg>
           </div>
@@ -187,9 +187,17 @@
           <p class="explanation" id="explanation">Tune a control to explore the cycle.</p>
           <details class="learn-details">
             <summary>How does the Rankine cycle work?</summary>
-            <p>Heat turns pressurized water into steam. Expanding steam spins a turbine, and a generator converts shaft work into electricity. The condenser rejects remaining heat so the water can be pumped back to the boiler.</p>
+            <p>The pump raises liquid-water pressure. The boiler adds heat to make steam. Steam expands through a turbine, producing shaft work. A generator converts most shaft work to electricity. The condenser rejects heat so the water can return to the pump. The cycle model uses Q̇in = Ẇturbine − Ẇpump + Q̇out.</p>
           </details>
-          <div class="model-note"><span>ⓘ</span> Simplified steam-table model for learning; not for plant operation.</div>
+          <details class="learn-details">
+            <summary>What do the controls mean?</summary>
+            <p><strong>Boiler pressure:</strong> the high-side pressure before expansion. <strong>Steam temperature:</strong> turbine-inlet temperature; above saturation this is superheat. <strong>Mass flow:</strong> steam passing each second. <strong>Turbine efficiency:</strong> actual enthalpy drop divided by ideal isentropic enthalpy drop. <strong>Condenser pressure:</strong> turbine exhaust pressure; lower pressure generally increases the available expansion.</p>
+          </details>
+          <details class="learn-details">
+            <summary>How should I read steam quality?</summary>
+            <p>Quality is the vapor mass fraction of a saturated liquid–vapor mixture. It is defined only inside the two-phase region. A “superheated” exhaust has quality undefined, not greater than 100%. Low quality means more liquid droplets and can increase turbine-blade erosion risk.</p>
+          </details>
+          <div class="model-note"><span>ⓘ</span> Educational approximation using interpolated saturation data; not a design or operating tool. <a href="docs/README.md">Open the learning guide →</a></div>
         </section>
       </section>
     </main>

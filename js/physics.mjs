@@ -27,7 +27,8 @@ export const DEFAULTS = Object.freeze({
 });
 
 export const INPUT_RANGES = Object.freeze({
-  pressureMPa: [1, 25],
+  // The compact saturation table is intentionally kept below the critical point.
+  pressureMPa: [1, 20],
   tempC: [200, 600],
   flowKgS: [1, 100],
   turbineEff: [50, 95],
@@ -58,56 +59,86 @@ function condenserSaturation(condenserKPa) {
   return interpolateSaturation(condenserKPa / 1000);
 }
 
+function steamHeatCapacity(pressureMPa) {
+  // A compact pressure-aware approximation; real steam properties require IAPWS-IF97.
+  return 2.08 + 0.16 * pressureMPa;
+}
+const WATER_GAMMA = 0.001; // Approximate liquid specific volume, m³/kg.
+const STEAM_GAS_CONSTANT = 0.4615; // kJ/(kg·K), approximated as ideal vapor.
+const GENERATOR_EFFICIENCY = 0.98;
+
 function inletState(pressureMPa, temperatureC) {
   const saturation = interpolateSaturation(pressureMPa);
+  const cp = steamHeatCapacity(pressureMPa);
   const effectiveTempC = Math.max(temperatureC, saturation.ts);
   const superheatK = Math.max(0, effectiveTempC - saturation.ts);
-  // The sparse table misses the superheated/near-critical ridge; this correction preserves trend continuity.
-  const highPressureCorrection = Math.max(0, pressureMPa - 8) * 45;
-  const h = saturation.hf + saturation.hfg + 2.1 * superheatK + highPressureCorrection;
+  const h = saturation.hf + saturation.hfg + cp * superheatK;
   const entropy = saturation.sf + saturation.sfg
-    + 2.1 * Math.log((effectiveTempC + 273.15) / (saturation.ts + 273.15))
-    + highPressureCorrection / (effectiveTempC + 273.15);
-  return { h, s: entropy, effectiveTempC, saturation };
+    + cp * Math.log((effectiveTempC + 273.15) / (saturation.ts + 273.15));
+  return { h, s: entropy, cp, effectiveTempC, saturation };
 }
 
 export function computeAll(inputs) {
   const inlet = inletState(inputs.pressureMPa, inputs.tempC);
   const exhaust = condenserSaturation(inputs.condenserKPa);
   const turbineEfficiency = inputs.turbineEff / 100;
-  const superheatAboveReference = Math.max(0, inlet.effectiveTempC - Math.max(200, inlet.saturation.ts));
-  // Calibrated isentropic-drop correlation keeps power trends useful with this compact table.
-  const idealDrop = (
-    435
-    + 650 * (1 - Math.exp(-inputs.pressureMPa / 8))
-    + superheatAboveReference * 0.9
-  ) * (1 - 0.008 * (inputs.condenserKPa - 10));
-  const isentropicEnthalpy = Math.max(exhaust.hf, inlet.h - idealDrop);
-  const isentropicQuality = Math.min(1, Math.max(0, (isentropicEnthalpy - exhaust.hf) / exhaust.hfg));
+  // Isentropic expansion: s2s = s1. Use saturated-mixture properties when inside the dome;
+  // above the saturated-vapor line, use the same idealized cp relation as the inlet.
+  const exhaustSaturatedVaporEntropy = exhaust.sf + exhaust.sfg;
+  const isentropicQuality = Math.min(1, Math.max(0, (inlet.s - exhaust.sf) / exhaust.sfg));
+  let isentropicEnthalpy;
+  if (inlet.s <= exhaustSaturatedVaporEntropy) {
+    isentropicEnthalpy = exhaust.hf + isentropicQuality * exhaust.hfg;
+  } else {
+    const superheatRatio = Math.exp((inlet.s - exhaustSaturatedVaporEntropy) / inlet.cp);
+    isentropicEnthalpy = exhaust.hf + exhaust.hfg + inlet.cp * (exhaust.ts + 273.15) * (superheatRatio - 1);
+  }
   const actualDrop = Math.max(0, (inlet.h - isentropicEnthalpy) * turbineEfficiency);
   const exitEnthalpy = inlet.h - actualDrop;
-  const exitQuality = Math.min(1, Math.max(0, (exitEnthalpy - exhaust.hf) / exhaust.hfg));
-  // Turbine work: W = ṁ × (h1 − h2), with h2 derived from the isentropic drop and turbine efficiency.
+  const exitQuality = exitEnthalpy <= exhaust.hf + exhaust.hfg
+    ? Math.min(1, Math.max(0, (exitEnthalpy - exhaust.hf) / exhaust.hfg))
+    : null;
+  // Turbine shaft work: Wt = ṁ(h1 − h2); liquid-pump work: Wp ≈ ṁv(Pboiler − Pcond).
   const workKW = inputs.flowKgS * actualDrop;
-  const pumpWork = Math.max(0, inputs.pressureMPa - inputs.condenserKPa / 1000);
-  const heatInKW = inputs.flowKgS * Math.max(1, inlet.h - exhaust.hf - pumpWork);
-  const workMW = workKW / 1000;
+  const pumpSpecificWork = WATER_GAMMA * (inputs.pressureMPa * 1000 - inputs.condenserKPa);
+  const pumpWorkKW = inputs.flowKgS * pumpSpecificWork;
+  const heatInKW = inputs.flowKgS * Math.max(1, inlet.h - (exhaust.hf + pumpSpecificWork));
+  const netWorkKW = workKW - pumpWorkKW;
+  const turbineWorkMW = workKW / 1000;
+  const pumpWorkMW = pumpWorkKW / 1000;
+  const netWorkMW = netWorkKW / 1000;
   const heatInMW = heatInKW / 1000;
-  const powerMW = workMW * 0.98;
-  const efficiency = Math.min(0.5, Math.max(0.05, workKW / heatInKW));
-  const wasteMW = Math.max(0, heatInMW - workMW);
+  const powerMW = Math.max(0, netWorkMW * GENERATOR_EFFICIENCY);
+  const efficiency = Math.min(1, Math.max(0, netWorkKW / heatInKW));
+  // Cycle balance: Qin + Wp = Wt + Qout. Sankey groups pump input with useful cycle work.
+  const wasteMW = Math.max(0, heatInMW - netWorkMW);
+  const workMW = netWorkMW;
   const generatorLossMW = workMW - powerMW;
-  const specificVolume = 0.001 + exitQuality * 14.5;
+  const exitEntropy = exitQuality === null
+    ? exhaustSaturatedVaporEntropy + inlet.cp * Math.log(1 + (exitEnthalpy - exhaust.hf - exhaust.hfg) / (inlet.cp * (exhaust.ts + 273.15)))
+    : exhaust.sf + exitQuality * exhaust.sfg;
+  const exitTempC = exitQuality === null
+    ? exhaust.ts + (exitEnthalpy - exhaust.hf - exhaust.hfg) / inlet.cp
+    : exhaust.ts;
+  const saturatedVaporVolume = STEAM_GAS_CONSTANT * (exhaust.ts + 273.15) / inputs.condenserKPa;
+  const exitSpecificVolume = exitQuality === null
+    ? STEAM_GAS_CONSTANT * (exitTempC + 273.15) / inputs.condenserKPa
+    : WATER_GAMMA + exitQuality * (saturatedVaporVolume - WATER_GAMMA);
+  const inletSpecificVolume = STEAM_GAS_CONSTANT * (inlet.effectiveTempC + 273.15) / (inputs.pressureMPa * 1000);
 
   return {
     h1: inlet.h,
     s1: inlet.s,
     h2: exitEnthalpy,
-    s2: inlet.s,
+    s2: exitEntropy,
+    exitTempC,
     exitQuality,
     powerMW,
     efficiency,
     workMW,
+    turbineWorkMW,
+    netWorkMW,
+    pumpWorkMW,
     heatInMW,
     wasteMW,
     generatorLossMW,
@@ -115,11 +146,13 @@ export function computeAll(inputs) {
     inletTempC: inlet.effectiveTempC,
     saturationTempC: inlet.saturation.ts,
     isentropicQuality,
-    specificVolume
+    specificVolume: exitSpecificVolume,
+    inletSpecificVolume
   };
 }
 
 export function getQualityStatus(quality) {
+  if (quality === null || quality === undefined) return "superheated";
   if (quality < 0.85) return "red";
   if (quality < 0.9) return "amber";
   return "green";
