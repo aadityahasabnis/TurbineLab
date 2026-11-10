@@ -14,7 +14,7 @@
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: minmax(0, 1.65fr) minmax(280px, 1fr);
-  align-items: start;
+  align-items: stretch;
   gap: 12px;
 }
 
@@ -23,7 +23,7 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-content: start;
-  align-items: start;
+  align-items: stretch;
   gap: 12px;
 }
 .dashboard-workspace > .dashboard-zone[data-dashboard-zone="center"] { grid-column: 1 / -1; }
@@ -31,6 +31,26 @@
 .dashboard-workspace > .dashboard-zone[data-dashboard-zone="bottom"] { display: contents; }
 .dashboard-workspace > .dashboard-zone > .layout-component { width: 100%; }
 .dashboard-zone[data-dashboard-zone="bottom"] > .layout-component { width: 100%; }
+
+@media (min-width: 901px) {
+  .dashboard-workspace [data-layout-panel="performance"],
+  .dashboard-workspace [data-layout-panel="thermodynamics"] {
+    margin-top: 0;
+    align-self: stretch;
+  }
+  .dashboard-workspace .chart-panel { display: flex; flex-direction: column; }
+  .dashboard-workspace .efficiency-chart,
+  .dashboard-workspace .cycle-chart { flex: 1; min-height: 0; }
+  .dashboard-workspace .efficiency-chart svg,
+  .dashboard-workspace .cycle-chart svg { height: 100%; }
+}
+
+.dashboard-zone[data-dashboard-zone="bottom"] > .layout-component { align-self: stretch; }
+.dashboard-zone[data-dashboard-zone="bottom"] > .learn-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
 
 .dashboard-zone > .layout-size-compact { padding: 12px; }
 .dashboard-zone > .layout-size-compact .turbine-stage { height: 145px; }
