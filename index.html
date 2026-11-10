@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0b1118">
+    <meta name="description" content="Explore how steam conditions shape power, efficiency, and energy flow in a live Rankine cycle sandbox.">
+    <title>SteamLab — Rankine Cycle Sandbox</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <script type="module" src="js/main.mjs"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="SteamLab home"><span class="brand-mark">S</span><span>steam<span class="brand-light">lab</span></span></a>
+      <div class="topbar-meta"><span class="live-dot"></span><span>RANKINE CYCLE SIMULATOR</span></div>
+      <div class="topbar-actions">
+        <button class="icon-button" id="share-button" type="button" aria-label="Copy share link" title="Copy share link">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13.5a4.5 4.5 0 0 0 6.36 0l3-3A4.5 4.5 0 0 0 13 4.14l-1.72 1.72M14 10.5a4.5 4.5 0 0 0-6.36 0l-3 3A4.5 4.5 0 0 0 11 19.86l1.72-1.72"/></svg>
+        </button>
+        <button class="icon-button theme-toggle" id="theme-toggle" type="button" aria-label="Switch to light theme" title="Toggle theme">
+          <svg class="theme-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg>
+          <svg class="theme-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.9 13A8.5 8.5 0 0 1 11 3.1 8.5 8.5 0 1 0 20.9 13Z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <section class="intro">
+        <div>
+          <p class="eyebrow">YOUR PLANT. YOUR PARAMETERS.</p>
+          <h1>Make steam <span>work.</span></h1>
+          <p class="intro-copy">Tune the cycle. See where the energy goes.</p>
+        </div>
+        <div class="experiment-tag"><span class="tag-icon">↗</span><span>LIVE EXPERIMENT<br><strong>Adjust any control to begin</strong></span></div>
+      </section>
+
+      <div class="sim-grid">
+        <aside class="panel controls-panel" aria-labelledby="controls-title">
+          <div class="section-heading">
+            <div><p class="eyebrow">01 / INPUTS</p><h2 id="controls-title">Plant controls</h2></div>
+            <span class="heading-icon">⌁</span>
+          </div>
+          <p class="panel-note">Adjust operating conditions to see how the cycle responds.</p>
+          <form id="controls-form">
+            <div class="control" data-control="pressureMPa">
+              <div class="control-label"><label for="pressure">Boiler pressure</label><output for="pressure" id="pressure-value">10.0 <small>MPa</small></output></div>
+              <input id="pressure" name="pressureMPa" type="range" min="1" max="25" step="0.5" value="10" aria-label="Boiler pressure in megapascals">
+              <div class="range-scale"><span>1 MPa</span><button type="button" class="quick-set" data-input="pressureMPa" data-value="15">OPTIMUM 15</button><span>25 MPa</span></div>
+            </div>
+            <div class="control" data-control="tempC">
+              <div class="control-label"><label for="temperature">Steam temperature</label><output for="temperature" id="temperature-value">500 <small>°C</small></output></div>
+              <input id="temperature" name="tempC" type="range" min="200" max="600" step="10" value="500" aria-label="Steam temperature in degrees Celsius">
+              <div class="range-scale"><span>200 °C</span><span>600 °C</span></div>
+            </div>
+            <div class="control" data-control="flowKgS">
+              <div class="control-label"><label for="flow">Mass flow rate</label><output for="flow" id="flow-value">50 <small>kg/s</small></output></div>
+              <input id="flow" name="flowKgS" type="range" min="1" max="100" step="1" value="50" aria-label="Steam mass flow in kilograms per second">
+              <div class="range-scale"><span>1 kg/s</span><span>100 kg/s</span></div>
+            </div>
+            <div class="control" data-control="turbineEff">
+              <div class="control-label"><label for="turbine-eff">Turbine efficiency</label><output for="turbine-eff" id="turbine-eff-value">85 <small>%</small></output></div>
+              <input id="turbine-eff" name="turbineEff" type="range" min="50" max="95" step="1" value="85" aria-label="Turbine efficiency">
+              <div class="range-scale"><span>50%</span><span>95%</span></div>
+            </div>
+            <div class="control" data-control="condenserKPa">
+              <div class="control-label"><label for="condenser">Condenser pressure</label><output for="condenser" id="condenser-value">10 <small>kPa</small></output></div>
+              <input id="condenser" name="condenserKPa" type="range" min="5" max="20" step="1" value="10" aria-label="Condenser pressure in kilopascals">
+              <div class="range-scale"><span>5 kPa</span><span>20 kPa</span></div>
+            </div>
+            <div class="control-actions">
+              <button class="button button-quiet" id="reset-button" type="button"><span>↺</span> Reset</button>
+              <button class="button button-accent" id="randomize-button" type="button"><span>⤨</span> Randomize</button>
+            </div>
+          </form>
+        </aside>
+
+        <section class="plant-column" aria-label="Live plant output">
+          <div class="metrics-grid" aria-live="polite">
+            <article class="metric-card metric-power">
+              <div class="metric-top"><span class="metric-icon">ϟ</span><span class="metric-label">ELECTRIC OUTPUT</span></div>
+              <div class="metric-value"><span id="power-value">—</span><small>MW</small></div>
+              <div class="metric-foot"><span class="trend-arrow">↗</span><span id="power-context">Generator output</span></div>
+            </article>
+            <article class="metric-card metric-efficiency">
+              <div class="metric-top"><span class="metric-icon">◉</span><span class="metric-label">THERMAL EFFICIENCY</span></div>
+              <div class="metric-value"><span id="efficiency-value">—</span><small>%</small></div>
+              <div class="metric-foot"><span class="metric-dot"></span><span>Heat converted to work</span></div>
+            </article>
+            <article class="metric-card metric-quality">
+              <div class="metric-top"><span class="metric-icon">◌</span><span class="metric-label">EXIT STEAM QUALITY</span></div>
+              <div class="metric-value"><span id="quality-value">—</span><small>%</small></div>
+              <div class="metric-foot"><span class="status-pill" id="quality-status">CALCULATING</span></div>
+            </article>
+            <article class="metric-card metric-rpm">
+              <div class="metric-top"><span class="metric-icon">⟳</span><span class="metric-label">TURBINE SPEED</span></div>
+              <div class="metric-value"><span id="rpm-value">—</span><small>RPM</small></div>
+              <div class="metric-foot"><span class="metric-dot dot-cyan"></span><span>Shaft speed estimate</span></div>
+            </article>
+          </div>
+
+          <article class="panel turbine-panel">
+            <div class="section-heading compact-heading">
+              <div><p class="eyebrow">02 / CONVERSION</p><h2>Steam to spin</h2></div>
+              <span class="live-label"><span class="live-dot"></span> LIVE</span>
+            </div>
+            <div class="turbine-stage">
+              <canvas id="turbine-canvas" aria-label="Animated turbine showing steam flow and blade rotation"></canvas>
+              <div class="turbine-overlay turbine-inlet"><span>STEAM IN</span><i></i></div>
+              <div class="turbine-overlay turbine-outlet"><span>EXHAUST</span><i></i></div>
+              <div class="turbine-caption"><span>HP TURBINE</span><span id="turbine-caption-rpm">0 RPM</span></div>
+            </div>
+            <div id="warning-banner" class="warning-banner" role="status" hidden></div>
+            <div class="turbine-foot"><span>Blade speed responds to net power output</span><span class="signal-bars"><i></i><i></i><i></i><i></i></span></div>
+          </article>
+
+          <section class="panel presets-panel" aria-labelledby="presets-title">
+            <div class="section-heading compact-heading">
+              <div><p class="eyebrow">03 / QUICK START</p><h2 id="presets-title">Choose a plant</h2></div>
+              <span class="small-muted">LOAD SCENARIO</span>
+            </div>
+            <div class="preset-grid">
+              <button class="preset-card" data-preset="coal" type="button"><span class="preset-icon preset-coal">◈</span><span><strong>Coal</strong><small>High pressure</small></span></button>
+              <button class="preset-card" data-preset="nuclear" type="button"><span class="preset-icon preset-nuclear">◎</span><span><strong>Nuclear</strong><small>Steady baseload</small></span></button>
+              <button class="preset-card" data-preset="solar" type="button"><span class="preset-icon preset-solar">☼</span><span><strong>Solar thermal</strong><small>Superheated</small></span></button>
+              <button class="preset-card" data-preset="geothermal" type="button"><span class="preset-icon preset-geothermal">♨</span><span><strong>Geothermal</strong><small>Low temperature</small></span></button>
+            </div>
+          </section>
+        </section>
+
+        <aside class="insights-column" aria-label="Cycle analysis">
+          <section class="panel chart-panel efficiency-panel">
+            <div class="section-heading compact-heading">
+              <div><p class="eyebrow">04 / PERFORMANCE</p><h2>Pressure curve</h2></div>
+              <button class="compare-button" id="compare-button" type="button" aria-pressed="false">＋ Compare</button>
+            </div>
+            <p class="chart-subtitle">Thermal efficiency by boiler pressure</p>
+            <div class="chart-wrap efficiency-chart">
+              <svg id="efficiency-chart" viewBox="0 0 360 170" role="img" aria-label="Thermal efficiency plotted against boiler pressure"></svg>
+            </div>
+            <div class="chart-legend"><span><i class="legend-line"></i> Current conditions</span><span id="compare-legend" hidden><i class="legend-line legend-ghost"></i> Pinned setup</span></div>
+            <p class="chart-insight" id="curve-insight">Efficiency improves as pressure rises, then levels off.</p>
+          </section>
+
+          <section class="panel chart-panel diagram-panel">
+            <div class="section-heading compact-heading">
+              <div><p class="eyebrow">05 / THERMODYNAMICS</p><h2>Cycle diagrams</h2></div>
+              <span class="small-muted">LIVE PLOT</span>
+            </div>
+            <div class="chart-tabs" role="tablist" aria-label="Cycle diagram">
+              <button class="chart-tab is-active" role="tab" aria-selected="true" data-chart="ts" type="button">T–s</button>
+              <button class="chart-tab" role="tab" aria-selected="false" data-chart="pv" type="button">P–v</button>
+              <button class="chart-tab" role="tab" aria-selected="false" data-chart="efficiency" type="button">Efficiency</button>
+            </div>
+            <div class="chart-wrap cycle-chart">
+              <svg id="cycle-chart" viewBox="0 0 360 210" role="img" aria-label="Live thermodynamic cycle diagram"></svg>
+            </div>
+            <div class="diagram-caption"><span class="legend-dot"></span><span id="diagram-caption">Expansion through the turbine</span></div>
+          </section>
+        </aside>
+      </div>
+
+      <section class="lower-grid">
+        <section class="panel sankey-panel">
+          <div class="section-heading">
+            <div><p class="eyebrow">06 / ENERGY BALANCE</p><h2>Follow the energy</h2></div>
+            <span class="balance-tag"><span class="balance-check">✓</span> BALANCED</span>
+          </div>
+          <p class="panel-note">Every unit of heat is accounted for. Select a flow to inspect its share.</p>
+          <div class="sankey-scroll">
+            <svg id="sankey-chart" viewBox="0 0 760 220" role="img" aria-label="Energy flow diagram showing heat input divided into work and waste heat, then electricity and generator loss"></svg>
+          </div>
+          <div class="sankey-tooltip" id="sankey-tooltip" aria-live="polite">Heat input is the full 100% energy budget.</div>
+          <div class="energy-total"><span>THERMAL INPUT</span><strong id="heat-value">— <small>MW</small></strong><span>100% OF ENERGY BUDGET</span></div>
+        </section>
+        <section class="panel learn-panel">
+          <div class="section-heading">
+            <div><p class="eyebrow">07 / THE SCIENCE</p><h2>What changed?</h2></div>
+            <span class="heading-icon">✳</span>
+          </div>
+          <p class="panel-note">A quick read of your current operating point.</p>
+          <p class="explanation" id="explanation">Tune a control to explore the cycle.</p>
+          <details class="learn-details">
+            <summary>How does the Rankine cycle work?</summary>
+            <p>Heat turns pressurized water into steam. Expanding steam spins a turbine, and a generator converts shaft work into electricity. The condenser rejects remaining heat so the water can be pumped back to the boiler.</p>
+          </details>
+          <div class="model-note"><span>ⓘ</span> Simplified steam-table model for learning; not for plant operation.</div>
+        </section>
+      </section>
+    </main>
+
+    <footer class="footer"><span>STEAMLAB <span class="footer-divider">/</span> LEARN BY TURNING THE DIALS</span><button type="button" id="footer-share">SHARE THIS SETUP ↗</button></footer>
+    <div class="mobile-results" aria-live="polite"><span>LIVE OUTPUT</span><strong><b id="mobile-power">—</b> MW</strong><i></i><strong><b id="mobile-efficiency">—</b>%</strong></div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
