@@ -1,5 +1,5 @@
-const STORAGE_KEY = "TurbineLab-dashboard-layout-v3";
-const PANELS = ["controls", "conversion", "presets", "performance", "thermodynamics", "energy", "science"];
+const STORAGE_KEY = "TurbineLab-dashboard-layout-v4";
+const PANELS = ["controls", "presets", "conversion", "performance", "thermodynamics", "energy", "science"];
 const ZONES = ["left", "center", "right", "bottom"];
 const DEFAULT_ZONE = Object.freeze({
   controls: "left",
@@ -50,15 +50,28 @@ function currentProfile() {
   return "desktop";
 }
 
+function isNarrowTablet() {
+  return matchMedia("(min-width: 640px) and (max-width: 900px)").matches;
+}
+
 export function initializeDashboardLayout() {
   const grid = document.querySelector(".sim-grid");
   const panels = new Map([...grid.querySelectorAll("[data-layout-panel]")].map((panel) => [panel.dataset.layoutPanel, panel]));
+  const workspace = document.createElement("section");
+  workspace.className = "dashboard-workspace";
+  workspace.setAttribute("aria-label", "Plant visualizations");
+  grid.append(workspace);
   const zones = Object.fromEntries(ZONES.map((id) => {
     const zone = document.createElement("section");
     zone.className = "dashboard-zone";
     zone.dataset.dashboardZone = id;
-    zone.setAttribute("aria-label", `${id} dashboard column`);
-    grid.append(zone);
+    zone.setAttribute("aria-label", {
+      left: "Plant inputs",
+      center: "Turbine and live output",
+      right: "Performance and cycle diagrams",
+      bottom: "Energy balance and learning"
+    }[id]);
+    (id === "left" || id === "bottom" ? grid : workspace).append(zone);
     return [id, zone];
   }));
   const toggle = document.querySelector("#layout-toggle");
@@ -66,6 +79,7 @@ export function initializeDashboardLayout() {
   const panelSelect = document.querySelector("#layout-panel-select");
   const layout = loadLayout();
   let profile = currentProfile();
+  let narrowTablet = isNarrowTablet();
 
   function persist() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(layout));
@@ -73,16 +87,16 @@ export function initializeDashboardLayout() {
 
   function render() {
     profile = currentProfile();
+    narrowTablet = isNarrowTablet();
     const mobile = profile === "mobile";
     const tablet = profile === "tablet";
-    const groupFor = (id) => tablet && layout.zones[id] === "right" ? "center" : layout.zones[id];
     const orderedPanels = [...layout.order].sort((a, b) => layout.order.indexOf(a) - layout.order.indexOf(b));
 
     for (const zone of Object.values(zones)) zone.replaceChildren();
     for (const id of orderedPanels) {
       const panel = panels.get(id);
       if (!panel) continue;
-      const target = mobile ? zones[layout.zones[id]] : zones[groupFor(id)];
+      const target = zones[layout.zones[id]];
       target.append(panel);
       panel.classList.toggle("layout-size-compact", layout.sizes[id] === "compact");
       panel.classList.toggle("layout-size-spacious", layout.sizes[id] === "spacious");
@@ -91,12 +105,12 @@ export function initializeDashboardLayout() {
     }
 
     for (const zone of Object.values(zones)) zone.hidden = false;
-    zones.right.hidden = tablet;
     orderedPanels.forEach((id, index) => {
       panels.get(id).style.order = mobile ? String(index) : "";
     });
     grid.classList.toggle("is-mobile-layout", mobile);
     grid.classList.toggle("is-tablet-layout", tablet);
+    workspace.classList.toggle("is-single-column", tablet && narrowTablet);
     toolbar.hidden = !document.body.classList.contains("is-layout-editing");
     const selected = panelSelect.value;
     document.querySelector('[data-layout-action="pin"]').setAttribute("aria-pressed", String(layout.pinned.includes(selected)));
@@ -115,8 +129,6 @@ export function initializeDashboardLayout() {
     const index = layout.order.indexOf(id);
     const sameVisibleGroup = (otherId) => {
       if (profile === "mobile") return true;
-      if (profile === "tablet") return (layout.zones[otherId] === "right" ? "center" : layout.zones[otherId])
-        === (layout.zones[id] === "right" ? "center" : layout.zones[id]);
       return layout.zones[otherId] === layout.zones[id];
     };
     for (let target = index + direction; target >= 0 && target < layout.order.length; target += direction) {
@@ -176,7 +188,7 @@ export function initializeDashboardLayout() {
   });
 
   window.addEventListener("resize", () => {
-    if (profile !== currentProfile()) render();
+    if (profile !== currentProfile() || narrowTablet !== isNarrowTablet()) render();
   });
   render();
 }

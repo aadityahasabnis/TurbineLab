@@ -4,6 +4,8 @@
 
 Turbine Lab is a browser-based learning experience for exploring how boiler pressure, steam temperature, flow, turbine efficiency, and condenser pressure affect a steam power cycle. Change a control, follow the turbine, and see how work, efficiency, exhaust moisture, and rejected heat move together.
 
+On desktop, inputs and presets stay together in a left rail while the turbine, paired charts, energy balance, and learning panels flow through one visualization workspace. Narrow tablet workspaces stack the charts to keep them readable; mobile keeps its single-column order.
+
 Use **Customize dashboard** to move, resize, or pin any of the seven panels. Your layout is saved in this browser; **Reset layout** restores the responsive defaults.
 
 ## Try it

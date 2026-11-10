@@ -1,31 +1,44 @@
 .sim-grid {
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
   align-items: start;
-  gap: 12px;
+  gap: 14px;
 }
-.dashboard-zone { display: flex; min-width: 0; flex-direction: column; gap: 0; }
-.dashboard-zone[data-dashboard-zone="left"] { grid-column: 1 / span 3; }
-.dashboard-zone[data-dashboard-zone="center"] { grid-column: 4 / span 5; }
-.dashboard-zone[data-dashboard-zone="right"] { grid-column: 9 / span 4; }
+
+.dashboard-zone { display: flex; min-width: 0; flex-direction: column; gap: 10px; }
+.dashboard-zone[data-dashboard-zone="left"] { grid-column: 1; grid-row: 1; }
+.dashboard-zone[data-dashboard-zone="left"] > .presets-panel { margin-top: 0; }
+.dashboard-zone[data-dashboard-zone="center"] { grid-column: 1 / -1; }
+.dashboard-zone[data-dashboard-zone="right"] { display: contents; }
 .dashboard-zone[data-dashboard-zone="bottom"] {
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: minmax(0, 1.65fr) minmax(280px, 1fr);
   align-items: start;
-  gap: 10px;
+  gap: 12px;
 }
-.dashboard-zone > .layout-component { width: 100%; }
-.dashboard-zone:not([data-dashboard-zone="bottom"]) > .layout-component + .layout-component { margin-top: 10px; }
-.dashboard-zone > .energy-panel,
-.dashboard-zone > .learn-panel { margin-top: 0; }
-.dashboard-zone[data-dashboard-zone="bottom"] > .layout-component { margin-top: 0; }
+
+.dashboard-workspace {
+  grid-column: 2;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  align-items: start;
+  gap: 12px;
+}
+.dashboard-workspace > .dashboard-zone[data-dashboard-zone="center"] { grid-column: 1 / -1; }
+.dashboard-workspace > .dashboard-zone[data-dashboard-zone="right"],
+.dashboard-workspace > .dashboard-zone[data-dashboard-zone="bottom"] { display: contents; }
+.dashboard-workspace > .dashboard-zone > .layout-component { width: 100%; }
+.dashboard-zone[data-dashboard-zone="bottom"] > .layout-component { width: 100%; }
+
 .dashboard-zone > .layout-size-compact { padding: 12px; }
 .dashboard-zone > .layout-size-compact .turbine-stage { height: 145px; }
 .dashboard-zone > .layout-size-compact .metric-card { min-height: 90px; padding: 10px; }
 .dashboard-zone > .layout-size-spacious { padding: 24px; }
 .dashboard-zone > .layout-size-spacious .turbine-stage { height: clamp(210px, 23vw, 290px); }
 .dashboard-zone > .layout-size-spacious .metric-card { min-height: 120px; }
+
 .is-layout-editing .layout-component.is-layout-selected {
   border-color: var(--cyan);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--cyan) 28%, transparent);
@@ -36,28 +49,25 @@
 }
 .sim-grid[data-chart-mobile="efficiency"] .efficiency-panel { display: none; }
 
-.is-mobile-layout .dashboard-zone { display: contents; }
-.is-mobile-layout .dashboard-zone[data-dashboard-zone="bottom"] { display: contents; }
-.is-mobile-layout .dashboard-zone > .layout-component { grid-column: 1 / -1; }
-.is-mobile-layout .dashboard-zone:not([data-dashboard-zone="bottom"]) > .layout-component + .layout-component { margin-top: 10px; }
-.is-mobile-layout .dashboard-zone[data-dashboard-zone="bottom"] > .layout-component + .layout-component { margin-top: 10px; }
-
 @media (min-width: 640px) and (max-width: 1024px) {
-  .dashboard-zone[data-dashboard-zone="left"] { grid-column: 1 / span 4; }
-  .dashboard-zone[data-dashboard-zone="center"] { grid-column: 5 / span 8; }
-  .dashboard-zone[data-dashboard-zone="right"] { display: none; }
-  .dashboard-zone[data-dashboard-zone="bottom"] { grid-template-columns: minmax(0, 1.25fr) minmax(250px, 1fr); }
+  .sim-grid { grid-template-columns: minmax(220px, .8fr) minmax(0, 1.2fr); gap: 12px; }
+  .dashboard-workspace { gap: 10px; }
+  .dashboard-workspace.is-single-column { grid-template-columns: minmax(0, 1fr); }
+  .dashboard-workspace.is-single-column > .dashboard-zone[data-dashboard-zone="center"] { grid-column: 1; }
+  .dashboard-zone[data-dashboard-zone="bottom"] {
+    grid-template-columns: minmax(0, 1.25fr) minmax(250px, 1fr);
+  }
 }
 
 @media (max-width: 639px) {
   main { padding-right: 14px; padding-left: 14px; }
   .sim-grid { grid-template-columns: minmax(0, 1fr); gap: 8px; }
-  .is-mobile-layout .dashboard-zone { display: contents; }
-  .is-mobile-layout .dashboard-zone[data-dashboard-zone="bottom"] { display: contents; }
-  .is-mobile-layout .dashboard-zone > .layout-component { grid-column: 1 / -1; }
-  .is-mobile-layout .dashboard-zone > .layout-component + .layout-component { margin-top: 10px; }
-  .dashboard-zone[data-dashboard-zone="right"] { display: contents; }
-  .dashboard-zone[data-dashboard-zone="bottom"] { display: contents; }
+  .dashboard-workspace,
+  .dashboard-zone { display: contents; }
+  .dashboard-zone[data-dashboard-zone="left"],
+  .dashboard-workspace { grid-column: 1; }
+  .dashboard-zone > .layout-component { grid-column: 1 / -1; }
+  .dashboard-zone[data-dashboard-zone="left"] > .presets-panel { margin-top: 10px; }
   .sim-grid .efficiency-panel { display: none; }
   .is-layout-editing .sim-grid .efficiency-panel { display: block; }
   .dashboard-zone > .layout-size-spacious { padding: 20px 16px; }
