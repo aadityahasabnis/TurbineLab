@@ -4,6 +4,8 @@
 
 Turbine Lab is a browser-based learning experience for exploring how boiler pressure, steam temperature, flow, turbine efficiency, and condenser pressure affect a steam power cycle. Change a control, follow the turbine, and see how work, efficiency, exhaust moisture, and rejected heat move together.
 
+Use **Customize dashboard** to move, resize, or pin any of the seven panels. Your layout is saved in this browser; **Reset layout** restores the responsive defaults.
+
 ## Try it
 
 - **Live simulator:** [turbinelab.aadityahasabnis.com](https://turbinelab.aadityahasabnis.com/)
@@ -25,10 +27,11 @@ node --test tests\physics.test.mjs tests\site-seo.test.mjs
 - `index.html` — simulator interface and search/social metadata.
 - `css/` — themes, responsive layout, and controls.
 - `js/physics.mjs` — pure cycle calculations and operating ranges.
+- `js/dashboard-layout.mjs` — responsive panel layout, saved per browser.
 - `js/visualizations.mjs`, `js/turbine.mjs` — diagrams and Canvas animation.
 - `docs/` — equations, assumptions, classroom experiments, presentation notes, and the implementation roadmap.
 - `assets/turbine-lab-og.png` — 1200 × 630 social preview image.
-- `scripts/generate-og-image.mjs` — regenerates the social image using only built-in Node.js modules.
+- `scripts/generate-og-image.ps1` — regenerates the social image with anti-aliased Segoe UI typography on Windows.
 
 ## Accuracy note
 

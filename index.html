@@ -56,6 +56,7 @@
       <a class="brand" href="#" aria-label="Turbine Lab home"><span class="brand-mark">T</span><span>turbine<span class="brand-light">lab</span></span></a>
       <div class="topbar-meta"><span class="live-dot"></span><span>RANKINE CYCLE SIMULATOR</span></div>
       <div class="topbar-actions">
+        <button class="icon-button" id="layout-toggle" type="button" aria-label="Customize dashboard layout" aria-pressed="false" title="Customize dashboard layout">⌗</button>
         <a class="icon-button learn-link" href="docs/" aria-label="Open the Turbine Lab field guide" title="Open field guide">i</a>
         <button class="icon-button" id="share-button" type="button" aria-label="Copy share link" title="Copy share link">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13.5a4.5 4.5 0 0 0 6.36 0l3-3A4.5 4.5 0 0 0 13 4.14l-1.72 1.72M14 10.5a4.5 4.5 0 0 0-6.36 0l-3 3A4.5 4.5 0 0 0 11 19.86l1.72-1.72"/></svg>
@@ -67,23 +68,40 @@
       </div>
     </header>
 
-    <main>
-      <section class="intro">
-        <div>
-          <p class="eyebrow">YOUR PLANT. YOUR PARAMETERS.</p>
-          <h1>Make steam <span>work.</span></h1>
-          <p class="intro-copy">An interactive steam power plant simulator. Tune the Rankine cycle and see how pressure, temperature and flow shape power, efficiency and exhaust.</p>
-        </div>
-        <div class="experiment-tag"><span class="tag-icon">↗</span><span>LIVE EXPERIMENT<br><strong>Adjust any control to begin</strong></span></div>
-      </section>
+    <div class="layout-toolbar" id="layout-toolbar" aria-label="Dashboard layout controls" hidden>
+      <label for="layout-panel-select">Panel</label>
+      <select id="layout-panel-select">
+        <option value="controls">Plant controls</option>
+        <option value="conversion">Steam to spin</option>
+        <option value="presets">Choose a plant</option>
+        <option value="performance">Pressure curve</option>
+        <option value="thermodynamics">Cycle diagrams</option>
+        <option value="energy">Follow the energy</option>
+        <option value="science">What changed?</option>
+      </select>
+      <div class="layout-toolbar-actions" role="group" aria-label="Move selected panel">
+        <button type="button" data-layout-action="left" title="Move to left column">Left</button>
+        <button type="button" data-layout-action="center" title="Move to center column">Center</button>
+        <button type="button" data-layout-action="right" title="Move to right column">Right</button>
+        <button type="button" data-layout-action="up" title="Move earlier">↑</button>
+        <button type="button" data-layout-action="down" title="Move later">↓</button>
+      </div>
+      <div class="layout-toolbar-actions" role="group" aria-label="Resize and pin selected panel">
+        <button type="button" data-layout-action="smaller" title="Use compact panel size">− Size</button>
+        <button type="button" data-layout-action="larger" title="Use spacious panel size">+ Size</button>
+        <button type="button" data-layout-action="pin" aria-pressed="false" title="Pin selected panel">⌖ Pin</button>
+      </div>
+      <button type="button" class="layout-reset-button" id="layout-reset">Reset</button>
+      <button type="button" class="layout-done-button" id="layout-done">Done</button>
+    </div>
 
+    <main>
       <div class="sim-grid">
-        <aside class="panel controls-panel" aria-labelledby="controls-title">
+        <aside class="panel controls-panel layout-component" data-layout-panel="controls" aria-labelledby="controls-title">
           <div class="section-heading">
             <div><p class="eyebrow">01 / INPUTS</p><h2 id="controls-title">Plant controls</h2></div>
             <span class="heading-icon">⌁</span>
           </div>
-          <p class="panel-note">Adjust operating conditions to see how the cycle responds.</p>
           <form id="controls-form">
             <div class="control" data-control="pressureMPa">
               <div class="control-label"><label for="pressure">Boiler pressure</label><output for="pressure" id="pressure-value">10.0 <small>MPa</small></output></div>
@@ -117,34 +135,32 @@
           </form>
         </aside>
 
-        <section class="plant-column" aria-label="Live plant output">
-          <div class="metrics-grid" aria-live="polite">
-            <article class="metric-card metric-power">
-              <div class="metric-top"><span class="metric-icon">ϟ</span><span class="metric-label">ELECTRIC OUTPUT</span></div>
-              <div class="metric-value"><span id="power-value">—</span><small>MW</small></div>
-              <div class="metric-foot"><span class="trend-arrow">↗</span><span id="power-context">Generator output</span></div>
-            </article>
-            <article class="metric-card metric-efficiency">
-              <div class="metric-top"><span class="metric-icon">◉</span><span class="metric-label">THERMAL EFFICIENCY</span></div>
-              <div class="metric-value"><span id="efficiency-value">—</span><small>%</small></div>
-              <div class="metric-foot"><span class="metric-dot"></span><span>Heat converted to work</span></div>
-            </article>
-            <article class="metric-card metric-quality">
-              <div class="metric-top"><span class="metric-icon">◌</span><span class="metric-label">EXIT STEAM QUALITY</span></div>
-              <div class="metric-value"><span id="quality-value">—</span><small>%</small></div>
-              <div class="metric-foot"><span class="status-pill" id="quality-status">CALCULATING</span></div>
-            </article>
-            <article class="metric-card metric-rpm">
-              <div class="metric-top"><span class="metric-icon">⟳</span><span class="metric-label">TURBINE SPEED</span></div>
-              <div class="metric-value"><span id="rpm-value">—</span><small>RPM</small></div>
-              <div class="metric-foot"><span class="metric-dot dot-cyan"></span><span>Shaft speed estimate</span></div>
-            </article>
-          </div>
-
-          <article class="panel turbine-panel">
+          <article class="panel turbine-panel layout-component" data-layout-panel="conversion">
             <div class="section-heading compact-heading">
               <div><p class="eyebrow">02 / CONVERSION</p><h2>Steam to spin</h2></div>
               <span class="live-label"><span class="live-dot"></span> LIVE</span>
+            </div>
+            <div class="metrics-grid" aria-live="polite">
+              <article class="metric-card metric-power">
+                <div class="metric-top"><span class="metric-icon">ϟ</span><span class="metric-label">ELECTRIC OUTPUT</span></div>
+                <div class="metric-value"><span id="power-value">—</span><small>MW</small></div>
+                <div class="metric-foot"><span class="trend-arrow">↗</span><span id="power-context">Generator output</span></div>
+              </article>
+              <article class="metric-card metric-efficiency">
+                <div class="metric-top"><span class="metric-icon">◉</span><span class="metric-label">THERMAL EFFICIENCY</span></div>
+                <div class="metric-value"><span id="efficiency-value">—</span><small>%</small></div>
+                <div class="metric-foot"><span class="metric-dot"></span><span>Heat converted to work</span></div>
+              </article>
+              <article class="metric-card metric-quality">
+                <div class="metric-top"><span class="metric-icon">◌</span><span class="metric-label">EXIT STEAM QUALITY</span></div>
+                <div class="metric-value"><span id="quality-value">—</span><small>%</small></div>
+                <div class="metric-foot"><span class="status-pill" id="quality-status">CALCULATING</span></div>
+              </article>
+              <article class="metric-card metric-rpm">
+                <div class="metric-top"><span class="metric-icon">⟳</span><span class="metric-label">TURBINE SPEED</span></div>
+                <div class="metric-value"><span id="rpm-value">—</span><small>RPM</small></div>
+                <div class="metric-foot"><span class="metric-dot dot-cyan"></span><span>Shaft speed estimate</span></div>
+              </article>
             </div>
             <div class="turbine-stage">
               <canvas id="turbine-canvas" aria-label="Animated turbine showing steam flow and blade rotation"></canvas>
@@ -152,11 +168,16 @@
               <div class="turbine-overlay turbine-outlet"><span>EXHAUST</span><i></i></div>
               <div class="turbine-caption"><span>HP TURBINE</span><span id="turbine-caption-rpm">0 RPM</span></div>
             </div>
+            <div class="turbine-flow-readout" aria-label="Animated flow visualization">
+              <span>STEAM MASS FLOW</span>
+              <meter id="flow-meter" min="1" max="100" value="50">50 kg/s</meter>
+              <strong id="mass-flow-readout">50 kg/s</strong>
+              <small>Particle speed is a visual indicator, not calculated nozzle velocity.</small>
+            </div>
             <div id="warning-banner" class="warning-banner" role="status" hidden></div>
-            <div class="turbine-foot"><span>Blade speed responds to net power output</span><span class="signal-bars"><i></i><i></i><i></i><i></i></span></div>
           </article>
 
-          <section class="panel presets-panel" aria-labelledby="presets-title">
+          <section class="panel presets-panel layout-component" data-layout-panel="presets" aria-labelledby="presets-title">
             <div class="section-heading compact-heading">
               <div><p class="eyebrow">03 / QUICK START</p><h2 id="presets-title">Choose a plant</h2></div>
               <span class="small-muted">LOAD SCENARIO</span>
@@ -168,10 +189,8 @@
               <button class="preset-card" data-preset="geothermal" type="button"><span class="preset-icon preset-geothermal">♨</span><span><strong>Geothermal</strong><small>Low temperature</small></span></button>
             </div>
           </section>
-        </section>
 
-        <aside class="insights-column" aria-label="Cycle analysis">
-          <section class="panel chart-panel efficiency-panel">
+          <section class="panel chart-panel efficiency-panel layout-component" data-layout-panel="performance">
             <div class="section-heading compact-heading">
               <div><p class="eyebrow">04 / PERFORMANCE</p><h2>Pressure curve</h2></div>
               <button class="compare-button" id="compare-button" type="button" aria-pressed="false">＋ Compare</button>
@@ -184,7 +203,7 @@
             <p class="chart-insight" id="curve-insight">Efficiency improves as pressure rises, then levels off.</p>
           </section>
 
-          <section class="panel chart-panel diagram-panel">
+          <section class="panel chart-panel diagram-panel layout-component" data-layout-panel="thermodynamics">
             <div class="section-heading compact-heading">
               <div><p class="eyebrow">05 / THERMODYNAMICS</p><h2>Cycle diagrams</h2></div>
               <span class="small-muted">LIVE PLOT</span>
@@ -199,23 +218,27 @@
             </div>
             <div class="diagram-caption"><span class="legend-dot"></span><span id="diagram-caption">Expansion through the turbine</span></div>
           </section>
-        </aside>
-      </div>
-
-      <section class="lower-grid">
-        <section class="panel sankey-panel">
+        <section class="panel sankey-panel layout-component" data-layout-panel="energy">
           <div class="section-heading">
             <div><p class="eyebrow">06 / ENERGY BALANCE</p><h2>Follow the energy</h2></div>
-            <span class="balance-tag"><span class="balance-check">✓</span> BALANCED</span>
+            <span class="balance-tag" id="balance-status" aria-live="polite">CHECKING BALANCE</span>
           </div>
-          <p class="panel-note">Cycle heat input is balanced against net shaft work and rejected heat. Select a flow to inspect its share.</p>
+          <p class="panel-note">Select a stream to inspect its share.</p>
           <div class="sankey-scroll">
             <svg id="sankey-chart" viewBox="0 0 760 220" role="img" aria-label="Energy flow diagram showing heat input divided into work and waste heat, then electricity and generator loss"></svg>
           </div>
           <div class="sankey-tooltip" id="sankey-tooltip" aria-live="polite">Heat input is the full 100% energy budget.</div>
+          <div class="energy-equation" aria-live="polite">
+            <span>HEAT IN</span><strong id="energy-input">— MW</strong><i>=</i>
+            <span>NET WORK</span><strong id="energy-work">— MW</strong><i>+</i>
+            <span>REJECTED</span><strong id="energy-rejected">— MW</strong>
+          </div>
+          <div class="energy-split" role="img" aria-label="Thermal input split into net shaft work and rejected heat">
+            <span id="energy-work-bar"></span><span id="energy-rejected-bar"></span>
+          </div>
           <div class="energy-total"><span>THERMAL INPUT</span><strong id="heat-value">— <small>MW</small></strong><span>100% OF ENERGY BUDGET</span></div>
         </section>
-        <section class="panel learn-panel">
+        <section class="panel learn-panel layout-component" data-layout-panel="science">
           <div class="section-heading">
             <div><p class="eyebrow">07 / THE SCIENCE</p><h2>What changed?</h2></div>
             <span class="heading-icon">✳</span>
@@ -236,7 +259,7 @@
           </details>
           <div class="model-note"><span>ⓘ</span> Educational approximation using interpolated saturation data; not a design or operating tool. <a href="docs/">Open the interactive learning guide →</a></div>
         </section>
-      </section>
+      </div>
     </main>
 
     <footer class="footer"><span>Turbine Lab <span class="footer-divider">/</span> LEARN BY TURNING THE DIALS</span><button type="button" id="footer-share">SHARE THIS SETUP ↗</button></footer>

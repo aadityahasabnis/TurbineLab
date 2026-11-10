@@ -71,8 +71,8 @@ export function createTurbine(canvas, getState, reduceMotion) {
     context.stroke();
     context.restore();
 
-    const particleCount = reduceMotion.matches ? 0 : Math.round(16 + inputs.flowKgS * .38);
-    const flowSpeed = .00008 + (inputs.pressureMPa / 25) * .00015;
+    const particleCount = reduceMotion.matches ? 0 : Math.round(8 + inputs.flowKgS * .55 + inputs.pressureMPa * .65);
+    const flowSpeed = (.000045 + inputs.flowKgS / 100 * .00016) * (.7 + inputs.pressureMPa / 25);
     const gradient = context.createLinearGradient(0, 0, width, 0);
     gradient.addColorStop(0, `${cyan}00`);
     gradient.addColorStop(.45, cyan);

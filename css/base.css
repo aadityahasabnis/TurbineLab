@@ -39,7 +39,10 @@ svg { display: block; }
   border-bottom: 1px solid var(--border);
   background: var(--surface-glass);
   backdrop-filter: blur(18px);
+  transition: top .22s ease;
 }
+.topbar.is-hidden { top: -70px; }
+.topbar-actions { align-items: center; }
 
 .brand { display: inline-flex; gap: 10px; align-items: center; font-weight: 800; font-size: 16px; letter-spacing: -.5px; }
 .brand-mark { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 9px; color: #0a171c; background: var(--cyan); font-size: 18px; font-weight: 800; }
@@ -54,16 +57,9 @@ svg { display: block; }
 .theme-moon, [data-theme="light"] .theme-sun { display: none; }
 [data-theme="light"] .theme-moon { display: block; }
 
-main { width: min(1540px, 100%); margin: 0 auto; padding: 0 clamp(16px, 3vw, 46px) 36px; }
-.intro { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; padding: clamp(30px, 4vw, 48px) 0 28px; }
+main { width: min(1540px, 100%); margin: 0 auto; padding: 18px clamp(16px, 3vw, 46px) 36px; }
 .eyebrow { margin: 0 0 8px; color: var(--cyan); font-size: 9px; font-weight: 500; letter-spacing: 1.4px; }
-h1, h2, p { margin-top: 0; }
-h1 { margin-bottom: 7px; font-size: clamp(30px, 4vw, 42px); line-height: 1.1; letter-spacing: -1.6px; font-weight: 700; }
-h1 span { color: var(--cyan); }
-.intro-copy { margin-bottom: 0; color: var(--text-soft); font-size: 13px; }
-.experiment-tag { display: flex; align-items: center; gap: 11px; color: var(--text-faint); font-size: 9px; line-height: 1.8; letter-spacing: .45px; }
-.experiment-tag strong { color: var(--text-soft); font-family: "Manrope", sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0; }
-.tag-icon { width: 32px; height: 32px; display: grid; place-items: center; color: var(--cyan); border: 1px solid var(--border-strong); border-radius: 50%; font-size: 16px; }
+h2, p { margin-top: 0; }
 
 .footer { max-width: 1540px; margin: 0 auto; padding: 16px clamp(18px, 4vw, 58px) 82px; display: flex; justify-content: space-between; gap: 15px; color: var(--text-faint); font-size: 9px; letter-spacing: .9px; }
 .footer-divider { padding: 0 7px; color: var(--border-strong); }
@@ -74,13 +70,13 @@ h1 span { color: var(--cyan); }
 @media (max-width: 639px) {
   body { padding-bottom: 62px; }
   .topbar { height: 58px; padding: 0 16px; }
-  .topbar-meta { font-size: 8px; letter-spacing: .6px; }
+  .topbar-meta { display: none; }
   .brand { font-size: 14px; }
   .brand-mark { width: 27px; height: 27px; }
+  .topbar-actions { gap: 4px; }
+  .topbar.is-hidden { top: -62px; }
   .icon-button { width: 36px; height: 36px; }
-  .intro { padding: 27px 0 21px; }
-  .experiment-tag { display: none; }
-  .intro-copy { font-size: 12px; }
+  main { padding-top: 12px; }
   .footer { padding-bottom: 20px; font-size: 8px; }
 }
 

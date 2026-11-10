@@ -3,6 +3,7 @@ import { renderCycleChart, renderEfficiencyChart, renderSankey, updateSankeyTool
 import { bindEvents } from "./events.mjs";
 import { createTurbine } from "./turbine.mjs";
 import { createShareHandler, readSharedInputs, updateShareUrl } from "./sharing.mjs";
+import { initializeDashboardLayout } from "./dashboard-layout.mjs";
 
 const state = {
   inputs: { ...DEFAULTS },
@@ -134,7 +135,21 @@ function render(state) {
   warning.hidden = warnings.length === 0;
 
   document.querySelector("#turbine-caption-rpm").textContent = `${Math.round(state.results.rpm).toLocaleString()} RPM`;
+  document.querySelector("#flow-meter").value = state.inputs.flowKgS;
+  document.querySelector("#mass-flow-readout").textContent = `${state.inputs.flowKgS} kg/s`;
   document.querySelector("#heat-value").setAttribute("aria-label", `${state.results.heatInMW.toFixed(1)} megawatts thermal input`);
+  const workShare = state.results.heatInMW ? Math.max(0, state.results.workMW / state.results.heatInMW) : 0;
+  const rejectedShare = state.results.heatInMW ? Math.max(0, state.results.wasteMW / state.results.heatInMW) : 0;
+  const balanceDelta = Math.abs(state.results.heatInMW - state.results.workMW - state.results.wasteMW);
+  const balanceStatus = document.querySelector("#balance-status");
+  balanceStatus.textContent = balanceDelta < 0.001 ? `BALANCED · Δ ${balanceDelta.toFixed(2)} MW` : `IMBALANCE · Δ ${balanceDelta.toFixed(2)} MW`;
+  balanceStatus.classList.toggle("is-invalid", balanceDelta >= 0.001);
+  document.querySelector("#energy-input").textContent = `${state.results.heatInMW.toFixed(1)} MW`;
+  document.querySelector("#energy-work").textContent = `${state.results.workMW.toFixed(1)} MW`;
+  document.querySelector("#energy-rejected").textContent = `${state.results.wasteMW.toFixed(1)} MW`;
+  document.querySelector("#energy-work-bar").style.width = `${workShare * 100}%`;
+  document.querySelector("#energy-rejected-bar").style.width = `${rejectedShare * 100}%`;
+  document.querySelector(".energy-split").setAttribute("aria-label", `${(workShare * 100).toFixed(1)}% net shaft work and ${(rejectedShare * 100).toFixed(1)}% rejected heat`);
   document.querySelector("#explanation").textContent = explainResults(state.inputs, state.results);
   document.querySelector("#curve-insight").textContent = state.inputs.pressureMPa < 15
     ? "Increasing boiler pressure can improve cycle efficiency and turbine work."
@@ -158,7 +173,7 @@ function explainResults(inputs, results) {
     : results.exitQuality < 0.85
     ? "Exhaust moisture is high, so blade erosion risk is elevated."
     : results.exitQuality < 0.9 ? "Exhaust moisture is approaching the caution range." : "Exhaust steam quality is within the healthy range.";
-  return `At ${inputs.pressureMPa.toFixed(1)} MPa and ${inputs.tempC} °C, the turbine produces ${results.powerMW.toFixed(1)} MW of electricity at ${(results.efficiency * 100).toFixed(1)}% thermal efficiency. ${qualityMessage}`;
+  return `At ${inputs.flowKgS} kg/s, ${inputs.pressureMPa.toFixed(1)} MPa and ${inputs.tempC} °C, the turbine produces ${results.powerMW.toFixed(1)} MW of electricity at ${(results.efficiency * 100).toFixed(1)}% thermal efficiency. ${qualityMessage}`;
 }
 
 function selectChart(chart) {
@@ -179,6 +194,23 @@ function showToast(message) {
   toastTimer = setTimeout(() => toast.classList.remove("is-visible"), 2200);
 }
 
+function bindTopbarVisibility() {
+  let previousScroll = window.scrollY;
+  let scheduled = false;
+  const topbar = document.querySelector(".topbar");
+  window.addEventListener("scroll", () => {
+    if (scheduled) return;
+    scheduled = true;
+    requestAnimationFrame(() => {
+      scheduled = false;
+      const currentScroll = window.scrollY;
+      if (currentScroll < 12) topbar.classList.remove("is-hidden");
+      else if (currentScroll > previousScroll + 2) topbar.classList.add("is-hidden");
+      previousScroll = currentScroll;
+    });
+  }, { passive: true });
+}
+
 function animate(timestamp) {
   animationFrame = 0;
   if (document.hidden) return;
@@ -196,6 +228,8 @@ function animate(timestamp) {
 }
 
 setTheme();
+initializeDashboardLayout();
+bindTopbarVisibility();
 const sharedInputs = readSharedInputs(DEFAULTS);
 if (sharedInputs) setInputValues(sharedInputs);
 render(state);
