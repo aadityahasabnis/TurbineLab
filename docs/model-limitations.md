@@ -1,6 +1,6 @@
 # Model assumptions and limits
 
-TurbineLab is designed to make cause and effect visible during an exhibition. Its results are plausible teaching estimates, not validated plant predictions.
+Turbine Lab is designed to make cause and effect visible during an exhibition. Its results are teaching estimates, not independently validated plant predictions.
 
 ## What is simplified
 
@@ -18,4 +18,4 @@ TurbineLab is designed to make cause and effect visible during an exhibition. It
 
 Say “the model estimates” or “the simplified cycle shows.” Discuss direction and trade-offs rather than claiming exact plant output. For example, increasing boiler pressure can improve ideal cycle efficiency over a range while making turbine exhaust wetter. Actual trends depend on temperature, reheat, component design, and operating limits.
 
-Use an authoritative steam-property implementation such as IAPWS-IF97 for engineering or safety work. TurbineLab must not be used to design, size, commission, or operate equipment.
+Use an authoritative steam-property implementation such as IAPWS-IF97 for engineering or safety work. Turbine Lab must not be used to design, size, commission, or operate equipment. See the [implementation roadmap](roadmap.md) for the staged model-validation plan.

@@ -100,10 +100,10 @@ The displayed RPM is an illustrative mapping of electrical output to a 0–3600 
 
 ## Physics source and reference
 
-Steam properties in engineering calculations are normally calculated with an equation of state such as IAPWS-IF97, which supplies region-specific thermodynamic relations for water and steam. TurbineLab instead uses rounded saturation data plus simple superheat and pump approximations so the calculations stay inspectable in a small client-side project.
+Steam properties in engineering calculations are normally calculated with an equation of state such as IAPWS-IF97, which supplies region-specific thermodynamic relations for water and steam. Turbine Lab currently uses rounded saturation data plus simplified superheat and pump approximations so the calculations stay inspectable in a small client-side project.
 
 - [IAPWS-IF97 revised release (official)](https://iapws.org/technical-guidance/release/IF97-Rev)
 - [NIST tabulation of water properties based on IAPWS-95](https://www.nist.gov/publications/thermodynamic-properties-water-tabulation-iapws-formulation-1995-thermodynamic)
 - [NIST steam tables PDF](https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=906704)
 
-The references establish the accepted property framework. TurbineLab’s compact table and correlations are rounded teaching data, not a claim of exact IAPWS evaluation; see [model limits](model-limitations.md).
+The references establish the accepted property framework. Turbine Lab’s compact table and correlations are rounded teaching data, not a claim of exact IAPWS evaluation; see [model limits](model-limitations.md) and the [accuracy roadmap](roadmap.md).

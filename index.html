@@ -4,8 +4,44 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#0b1118">
-    <meta name="description" content="Explore how steam conditions shape power, efficiency, and energy flow in a live Rankine cycle sandbox.">
-    <title>TurbineLab — Rankine Cycle Sandbox</title>
+    <meta name="description" content="Explore a steam power plant in an interactive Rankine cycle simulator. Adjust pressure, temperature and flow to see turbine power, efficiency and energy flow.">
+    <meta name="robots" content="index,follow,max-image-preview:large">
+    <link rel="canonical" href="https://turbinelab.aadityahasabnis.com/">
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Turbine Lab">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:url" content="https://turbinelab.aadityahasabnis.com/">
+    <meta property="og:title" content="Turbine Lab — See Steam Power in Motion">
+    <meta property="og:description" content="Explore a steam power plant in an interactive Rankine cycle. Tune the conditions, follow the energy and discover the trade-offs.">
+    <meta property="og:image" content="https://turbinelab.aadityahasabnis.com/assets/turbine-lab-og.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Turbine Lab: an illustrated steam turbine transforms heat into useful electricity.">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Turbine Lab — See Steam Power in Motion">
+    <meta name="twitter:description" content="Explore a steam power plant in an interactive Rankine cycle. Tune the conditions, follow the energy and discover the trade-offs.">
+    <meta name="twitter:image" content="https://turbinelab.aadityahasabnis.com/assets/turbine-lab-og.png">
+    <meta name="twitter:image:alt" content="Turbine Lab: an illustrated steam turbine transforms heat into useful electricity.">
+    <title>Turbine Lab | Interactive Steam Power Simulator</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Turbine Lab",
+        "applicationCategory": "EducationalApplication",
+        "operatingSystem": "Any",
+        "description": "A browser-based Rankine cycle simulator for exploring steam power, turbine performance and energy flow.",
+        "url": "https://turbinelab.aadityahasabnis.com/",
+        "image": "https://turbinelab.aadityahasabnis.com/assets/turbine-lab-og.png",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        }
+      }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -17,9 +53,10 @@
   </head>
   <body>
     <header class="topbar">
-      <a class="brand" href="#" aria-label="TurbineLab home"><span class="brand-mark">T</span><span>turbine<span class="brand-light">lab</span></span></a>
+      <a class="brand" href="#" aria-label="Turbine Lab home"><span class="brand-mark">T</span><span>turbine<span class="brand-light">lab</span></span></a>
       <div class="topbar-meta"><span class="live-dot"></span><span>RANKINE CYCLE SIMULATOR</span></div>
       <div class="topbar-actions">
+        <a class="icon-button learn-link" href="docs/" aria-label="Open the Turbine Lab field guide" title="Open field guide">i</a>
         <button class="icon-button" id="share-button" type="button" aria-label="Copy share link" title="Copy share link">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13.5a4.5 4.5 0 0 0 6.36 0l3-3A4.5 4.5 0 0 0 13 4.14l-1.72 1.72M14 10.5a4.5 4.5 0 0 0-6.36 0l-3 3A4.5 4.5 0 0 0 11 19.86l1.72-1.72"/></svg>
         </button>
@@ -35,7 +72,7 @@
         <div>
           <p class="eyebrow">YOUR PLANT. YOUR PARAMETERS.</p>
           <h1>Make steam <span>work.</span></h1>
-          <p class="intro-copy">Tune the cycle. See where the energy goes.</p>
+          <p class="intro-copy">An interactive steam power plant simulator. Tune the Rankine cycle and see how pressure, temperature and flow shape power, efficiency and exhaust.</p>
         </div>
         <div class="experiment-tag"><span class="tag-icon">↗</span><span>LIVE EXPERIMENT<br><strong>Adjust any control to begin</strong></span></div>
       </section>
@@ -202,7 +239,7 @@
       </section>
     </main>
 
-    <footer class="footer"><span>TurbineLab <span class="footer-divider">/</span> LEARN BY TURNING THE DIALS</span><button type="button" id="footer-share">SHARE THIS SETUP ↗</button></footer>
+    <footer class="footer"><span>Turbine Lab <span class="footer-divider">/</span> LEARN BY TURNING THE DIALS</span><button type="button" id="footer-share">SHARE THIS SETUP ↗</button></footer>
     <div class="mobile-results" aria-live="polite"><span>LIVE OUTPUT</span><strong><b id="mobile-power">—</b> MW</strong><i></i><strong><b id="mobile-efficiency">—</b>%</strong></div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
   </body>
