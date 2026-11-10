@@ -46,13 +46,23 @@ test("public pages have unique titles and page-specific canonical metadata", () 
 });
 
 test("every public page links to the creator's website and About page", () => {
+  const creatorCredits = [];
   for (const page of pages) {
     const html = read(page.file);
     assert.match(html, /aria-label="About the creator"/, `${page.file} must identify the creator links`);
     assert.match(html, /href="https:\/\/aadityahasabnis\.com\/"[^>]*>Aaditya Hasabnis<\/a>/, `${page.file} must link to the creator's homepage`);
     assert.match(html, /href="https:\/\/aadityahasabnis\.com\/about"[^>]*>About me ↗<\/a>/, `${page.file} must link to the creator's About page`);
     assert.equal((html.match(/target="_blank" rel="noopener noreferrer"/g) ?? []).length >= 2, true, `${page.file} external creator links should use safe new tabs`);
+    const footerStylesheet = page.file.startsWith("docs/") ? "../css/footer.css" : "css/footer.css";
+    assert.ok(html.includes(`href="${footerStylesheet}"`), `${page.file} must load shared footer styles`);
+    const creatorCredit = html.match(/<nav class="footer-credit"[\s\S]*?<\/nav>/);
+    assert.ok(creatorCredit, `${page.file} must include the creator credit`);
+    creatorCredits.push(creatorCredit[0].replace(/>\s+</g, "><").replace(/\s+/g, " ").trim());
+    if (page.file.startsWith("docs/")) {
+      assert.match(html, /<span class="brand-mark">T<\/span><span>Turbine <span class="brand-light">Lab<\/span><\/span>/, `${page.file} footer should use the Turbine Lab T brand mark`);
+    }
   }
+  assert.ok(creatorCredits.every((credit) => credit === creatorCredits[0]), "Creator credit markup should be consistent across public pages");
 });
 
 test("home page structured data describes the simulator", () => {
