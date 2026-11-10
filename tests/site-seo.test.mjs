@@ -45,6 +45,16 @@ test("public pages have unique titles and page-specific canonical metadata", () 
   }
 });
 
+test("every public page links to the creator's website and About page", () => {
+  for (const page of pages) {
+    const html = read(page.file);
+    assert.match(html, /aria-label="About the creator"/, `${page.file} must identify the creator links`);
+    assert.match(html, /href="https:\/\/aadityahasabnis\.com\/"[^>]*>Aaditya Hasabnis<\/a>/, `${page.file} must link to the creator's homepage`);
+    assert.match(html, /href="https:\/\/aadityahasabnis\.com\/about"[^>]*>About me ↗<\/a>/, `${page.file} must link to the creator's About page`);
+    assert.equal((html.match(/target="_blank" rel="noopener noreferrer"/g) ?? []).length >= 2, true, `${page.file} external creator links should use safe new tabs`);
+  }
+});
+
 test("home page structured data describes the simulator", () => {
   const html = read("index.html");
   const jsonLd = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
