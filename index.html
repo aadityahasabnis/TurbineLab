@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#0b1118">
     <meta name="description" content="Explore how steam conditions shape power, efficiency, and energy flow in a live Rankine cycle sandbox.">
-    <title>SteamLab — Rankine Cycle Sandbox</title>
+    <title>TurbineLab — Rankine Cycle Sandbox</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -17,7 +17,7 @@
   </head>
   <body>
     <header class="topbar">
-      <a class="brand" href="#" aria-label="SteamLab home"><span class="brand-mark">S</span><span>steam<span class="brand-light">lab</span></span></a>
+      <a class="brand" href="#" aria-label="TurbineLab home"><span class="brand-mark">T</span><span>turbine<span class="brand-light">lab</span></span></a>
       <div class="topbar-meta"><span class="live-dot"></span><span>RANKINE CYCLE SIMULATOR</span></div>
       <div class="topbar-actions">
         <button class="icon-button" id="share-button" type="button" aria-label="Copy share link" title="Copy share link">
@@ -197,12 +197,12 @@
             <summary>How should I read steam quality?</summary>
             <p>Quality is the vapor mass fraction of a saturated liquid–vapor mixture. It is defined only inside the two-phase region. A “superheated” exhaust has quality undefined, not greater than 100%. Low quality means more liquid droplets and can increase turbine-blade erosion risk.</p>
           </details>
-          <div class="model-note"><span>ⓘ</span> Educational approximation using interpolated saturation data; not a design or operating tool. <a href="docs/README.md">Open the learning guide →</a></div>
+          <div class="model-note"><span>ⓘ</span> Educational approximation using interpolated saturation data; not a design or operating tool. <a href="docs/">Open the interactive learning guide →</a></div>
         </section>
       </section>
     </main>
 
-    <footer class="footer"><span>STEAMLAB <span class="footer-divider">/</span> LEARN BY TURNING THE DIALS</span><button type="button" id="footer-share">SHARE THIS SETUP ↗</button></footer>
+    <footer class="footer"><span>TurbineLab <span class="footer-divider">/</span> LEARN BY TURNING THE DIALS</span><button type="button" id="footer-share">SHARE THIS SETUP ↗</button></footer>
     <div class="mobile-results" aria-live="polite"><span>LIVE OUTPUT</span><strong><b id="mobile-power">—</b> MW</strong><i></i><strong><b id="mobile-efficiency">—</b>%</strong></div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
   </body>

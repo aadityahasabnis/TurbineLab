@@ -1,4 +1,4 @@
-# SteamLab — Interactive Rankine cycle explorer
+# TurbineLab — Interactive Rankine cycle explorer
 
 A responsive classroom simulation of steam-to-turbine energy conversion. The interface lets students vary boiler pressure, inlet temperature, mass flow, turbine efficiency, and condenser pressure, then compare estimated power, cycle efficiency, exhaust state, and energy flows.
 
@@ -19,7 +19,7 @@ Serve this directory with any static HTTP server and open `index.html`. The inte
 
 ## Read before presenting
 
-Start at [docs/README.md](docs/README.md). The model is intentionally approximate and intended for learning. Read [model limitations](docs/model-limitations.md) before presenting outputs as real-plant predictions.
+Start at [the interactive field guide](docs/). The model is intentionally approximate and intended for learning. Read its model-limitations chapter before presenting outputs as real-plant predictions.
 
 ## Development phases
 

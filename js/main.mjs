@@ -45,7 +45,7 @@ let toastTimer;
 const shareSetup = createShareHandler(showToast);
 
 function setTheme() {
-  const savedTheme = localStorage.getItem("steamlab-theme");
+  const savedTheme = localStorage.getItem("TurbineLab-theme");
   state.ui.theme = savedTheme || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
   document.documentElement.dataset.theme = state.ui.theme;
   document.querySelector("#theme-toggle").setAttribute("aria-label", `Switch to ${state.ui.theme === "dark" ? "light" : "dark"} theme`);
@@ -54,7 +54,7 @@ function setTheme() {
 function toggleTheme() {
   state.ui.theme = state.ui.theme === "dark" ? "light" : "dark";
   document.documentElement.dataset.theme = state.ui.theme;
-  localStorage.setItem("steamlab-theme", state.ui.theme);
+  localStorage.setItem("TurbineLab-theme", state.ui.theme);
   document.querySelector("#theme-toggle").setAttribute("aria-label", `Switch to ${state.ui.theme === "dark" ? "light" : "dark"} theme`);
   render(state);
 }
