@@ -68,14 +68,14 @@ public static class TurbineOgImage
                 AddRoundedRect(mark, new Rectangle(64, 54, 54, 54), 13);
                 g.FillPath(markBrush, mark);
                 var format = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
-                g.DrawString("T", markFont, markTextBrush, new RectangleF(64, 51, 54, 58), format);
+                g.DrawString("E", markFont, markTextBrush, new RectangleF(64, 51, 54, 58), format);
             }
 
-            DrawText(g, "TURBINE LAB", 138, 64, 23, FontStyle.Bold, pale);
-            DrawText(g, "RANKINE CYCLE SIMULATOR", 72, 145, 17, FontStyle.Bold, cyan);
-            DrawText(g, "Steam to", 68, 208, 64, FontStyle.Bold, pale);
-            DrawText(g, "electricity.", 68, 279, 64, FontStyle.Bold, cyan);
-            DrawText(g, "Tune a control. See what changes.", 74, 374, 23, FontStyle.Regular, pale);
+            DrawText(g, "ENERGY LAB", 138, 64, 23, FontStyle.Bold, pale);
+            DrawText(g, "MULTI-SOURCE POWER EXPLORER", 72, 145, 17, FontStyle.Bold, cyan);
+            DrawText(g, "Wind, sun &", 68, 208, 56, FontStyle.Bold, pale);
+            DrawText(g, "steam to power.", 68, 279, 56, FontStyle.Bold, cyan);
+            DrawText(g, "Tune a resource. Follow the energy.", 74, 374, 23, FontStyle.Regular, pale);
 
             using (var chip = new GraphicsPath())
             using (var chipBrush = new SolidBrush(Color.FromArgb(210, 20, 54, 63)))
@@ -85,7 +85,7 @@ public static class TurbineOgImage
                 g.FillPath(chipBrush, chip);
                 g.DrawPath(chipPen, chip);
             }
-            DrawText(g, "PRESSURE  /  HEAT  /  WORK  /  POWER", 91, 440, 19, FontStyle.Bold, cyan);
+            DrawText(g, "WIND  /  SUNLIGHT  /  STEAM  /  POWER", 91, 440, 19, FontStyle.Bold, cyan);
 
             DrawTurbine(g, 925, 292, cyan, pale, amber);
 
@@ -94,7 +94,7 @@ public static class TurbineOgImage
             DrawText(g, "LIVE MODEL", 74, 540, 16, FontStyle.Bold, cyan);
             DrawText(g, "ENERGY BALANCE", 340, 540, 16, FontStyle.Bold, amber);
             DrawText(g, "CLASSROOM TOOL", 660, 540, 16, FontStyle.Bold, muted);
-            DrawText(g, "TURBINE LAB  /  STEAM POWER SIMULATOR", 74, 583, 15, FontStyle.Regular, pale);
+            DrawText(g, "ENERGY LAB  /  STEAM · WIND · SOLAR PV", 74, 583, 15, FontStyle.Regular, pale);
 
             bitmap.Save(outputPath, ImageFormat.Png);
         }

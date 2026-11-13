@@ -32,7 +32,7 @@ export function bindEvents({
     setInputValues({ ...state.inputs, [button.dataset.input]: Number(button.dataset.value) });
     render(state);
   }));
-  document.querySelectorAll(".preset-card").forEach((button) => button.addEventListener("click", () => {
+  document.querySelectorAll(".sim-grid .preset-card").forEach((button) => button.addEventListener("click", () => {
     setInputValues(presets[button.dataset.preset]);
     state.ui.activePreset = button.dataset.preset;
     render(state);

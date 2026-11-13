@@ -1,4 +1,4 @@
-# Turbine Lab — presentation run-of-show
+# Energy Lab — presentation run-of-show
 
 ## The promise
 

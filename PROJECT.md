@@ -1,26 +1,21 @@
-# TurbineLab — Interactive Rankine cycle explorer
+# Energy Lab — multi-source power systems explorer
 
-A responsive classroom simulation of steam-to-turbine energy conversion. The interface lets students vary boiler pressure, inlet temperature, mass flow, turbine efficiency, and condenser pressure, then compare estimated power, cycle efficiency, exhaust state, and energy flows.
+Energy Lab is a responsive browser learning studio for steam, wind, and solar PV. It shares source selection, live rendering, comparison, and shareable scenarios while keeping each technology's resource and conversion model separate.
 
 ## Run locally
 
-Serve this directory with any static HTTP server and open `index.html`. The interface uses native HTML, CSS, and JavaScript modules; no build step or framework is required. Browser module security may prevent reliable operation when opening the HTML directly from disk.
+Serve this directory with any static HTTP server and open `index.html`. The app uses native HTML, CSS, and JavaScript modules with no build step or framework.
 
 ## Project structure
 
-- `index.html` — page structure and controls.
-- `css/` — theme, responsive layout, and component styles.
-- `js/physics.mjs` — pure calculation model and input ranges.
-- `js/visualizations.mjs` — efficiency curve, cycle plots, and Sankey SVG.
-- `js/turbine.mjs` — canvas turbine animation.
-- `js/main.mjs`, `events.mjs`, `sharing.mjs` — application state, rendering, controls, and URL sharing.
-- `tests/physics.test.mjs` — model and balance checks.
-- `docs/` — student learning guide, equations, assumptions, Q&A, and build record.
+- `index.html` — Energy Lab shell, source selector, steam dashboard, and renewable workspace.
+- `js/models/` — shared model registry and isolated wind/PV calculations.
+- `js/physics.mjs` — existing approximate Rankine cycle.
+- `js/renewable-ui.mjs` — source-specific renewable controls and visualizations.
+- `js/sharing.mjs` — source-aware query state and legacy steam-link support.
+- `tests/` — steam, wind/PV, URL, and site metadata checks.
+- `docs/` — source model assumptions and steam field guide.
 
-## Read before presenting
+## Model status
 
-Start at [the interactive field guide](docs/). The model is intentionally approximate and intended for learning. Read its model-limitations chapter before presenting outputs as real-plant predictions.
-
-## Development phases
-
-The current implementation includes the responsive foundation, cycle engine, turbine visual, charts, balanced energy flow, scenarios, sharing, and classroom explanations. The remaining release review is device/browser inspection and comparison against an authoritative steam-property implementation. See [the build record](docs/build-plan-and-changelog.md).
+All outputs are educational operating-point estimates, not engineering or site-assessment results. The new wind model uses a fixed-coefficient rotor estimate; PV uses a simplified temperature and loss model. The steam cycle remains a separate, approximate teaching model. See [energy model notes](docs/energy-models.md).

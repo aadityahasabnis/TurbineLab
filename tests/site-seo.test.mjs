@@ -59,7 +59,7 @@ test("every public page links to the creator's website and About page", () => {
     assert.ok(creatorCredit, `${page.file} must include the creator credit`);
     creatorCredits.push(creatorCredit[0].replace(/>\s+</g, "><").replace(/\s+/g, " ").trim());
     if (page.file.startsWith("docs/")) {
-      assert.match(html, /<span class="brand-mark">T<\/span><span>Turbine <span class="brand-light">Lab<\/span><\/span>/, `${page.file} footer should use the Turbine Lab T brand mark`);
+      assert.match(html, /<span class="brand-mark">E<\/span><span>Energy <span class="brand-light">Lab<\/span><\/span>/, `${page.file} footer should use the Energy Lab E brand mark`);
     }
   }
   assert.ok(creatorCredits.every((credit) => credit === creatorCredits[0]), "Creator credit markup should be consistent across public pages");
@@ -71,7 +71,7 @@ test("home page structured data describes the simulator", () => {
   assert.ok(jsonLd, "Home page must include JSON-LD");
   const application = JSON.parse(jsonLd[1]);
   assert.equal(application["@type"], "SoftwareApplication");
-  assert.equal(application.name, "Turbine Lab");
+    assert.equal(application.name, "Energy Lab");
   assert.equal(application.url, `${origin}/`);
 });
 

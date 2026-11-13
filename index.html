@@ -4,35 +4,35 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#0b1118">
-    <meta name="description" content="Explore a steam power plant in an interactive Rankine cycle simulator. Adjust pressure, temperature and flow to see turbine power, efficiency and energy flow.">
+    <meta name="description" content="Explore steam, wind, and solar PV power systems in Energy Lab. Adjust resource and equipment inputs to see how electricity is generated.">
     <meta name="robots" content="index,follow,max-image-preview:large">
     <link rel="canonical" href="https://turbinelab.aadityahasabnis.com/">
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
     <meta property="og:type" content="website">
-    <meta property="og:site_name" content="Turbine Lab">
+    <meta property="og:site_name" content="Energy Lab">
     <meta property="og:locale" content="en_US">
     <meta property="og:url" content="https://turbinelab.aadityahasabnis.com/">
-    <meta property="og:title" content="Turbine Lab — See Steam Power in Motion">
-    <meta property="og:description" content="Explore a steam power plant in an interactive Rankine cycle. Tune the conditions, follow the energy and discover the trade-offs.">
+    <meta property="og:title" content="Energy Lab — Explore How Power Is Made">
+    <meta property="og:description" content="Explore steam, wind, and solar PV power systems. Change resource conditions and follow the energy conversion.">
     <meta property="og:image" content="https://turbinelab.aadityahasabnis.com/assets/turbine-lab-og.png">
     <meta property="og:image:type" content="image/png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="Turbine Lab: an illustrated steam turbine transforms heat into useful electricity.">
+    <meta property="og:image:alt" content="Energy Lab: an illustration of energy resources being converted into electricity.">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Turbine Lab — See Steam Power in Motion">
-    <meta name="twitter:description" content="Explore a steam power plant in an interactive Rankine cycle. Tune the conditions, follow the energy and discover the trade-offs.">
+    <meta name="twitter:title" content="Energy Lab — Explore How Power Is Made">
+    <meta name="twitter:description" content="Explore steam, wind, and solar PV power systems. Change resource conditions and follow the energy conversion.">
     <meta name="twitter:image" content="https://turbinelab.aadityahasabnis.com/assets/turbine-lab-og.png">
-    <meta name="twitter:image:alt" content="Turbine Lab: an illustrated steam turbine transforms heat into useful electricity.">
-    <title>Turbine Lab | Interactive Steam Power Simulator</title>
+    <meta name="twitter:image:alt" content="Energy Lab: an illustration of energy resources being converted into electricity.">
+    <title>Energy Lab | Interactive Power Systems</title>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
-        "name": "Turbine Lab",
+        "name": "Energy Lab",
         "applicationCategory": "EducationalApplication",
         "operatingSystem": "Any",
-        "description": "A browser-based Rankine cycle simulator for exploring steam power, turbine performance and energy flow.",
+        "description": "A browser-based learning studio for exploring steam, wind, and solar photovoltaic power systems.",
         "url": "https://turbinelab.aadityahasabnis.com/",
         "image": "https://turbinelab.aadityahasabnis.com/assets/turbine-lab-og.png",
         "offers": {
@@ -54,11 +54,11 @@
   </head>
   <body>
     <header class="topbar">
-      <a class="brand" href="#" aria-label="Turbine Lab home"><span class="brand-mark">T</span><span>turbine<span class="brand-light">lab</span></span></a>
-      <div class="topbar-meta"><span class="live-dot"></span><span>RANKINE CYCLE SIMULATOR</span></div>
+      <a class="brand" href="#" aria-label="Energy Lab home"><span class="brand-mark">E</span><span>energy<span class="brand-light">lab</span></span></a>
+      <div class="topbar-meta"><span class="live-dot"></span><label for="source-select">ENERGY SOURCE</label><select id="source-select" aria-label="Choose an energy source"><option value="steam">Steam power</option><option value="wind">Wind power</option><option value="solar-pv">Solar PV</option></select></div>
       <div class="topbar-actions">
         <button class="icon-button" id="layout-toggle" type="button" aria-label="Customize dashboard layout" aria-pressed="false" title="Customize dashboard layout">⌗</button>
-        <a class="icon-button learn-link" href="docs/" aria-label="Open the Turbine Lab field guide" title="Open field guide">i</a>
+        <a class="icon-button learn-link" href="docs/" aria-label="Open the Energy Lab steam field guide" title="Open steam field guide">i</a>
         <button class="icon-button" id="share-button" type="button" aria-label="Copy share link" title="Copy share link">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13.5a4.5 4.5 0 0 0 6.36 0l3-3A4.5 4.5 0 0 0 13 4.14l-1.72 1.72M14 10.5a4.5 4.5 0 0 0-6.36 0l-3 3A4.5 4.5 0 0 0 11 19.86l1.72-1.72"/></svg>
         </button>
@@ -74,7 +74,7 @@
       <select id="layout-panel-select">
         <option value="controls">Plant controls</option>
         <option value="conversion">Steam to spin</option>
-        <option value="presets">Choose a plant</option>
+        <option value="presets">Steam-cycle cases</option>
         <option value="performance">Pressure curve</option>
         <option value="thermodynamics">Cycle diagrams</option>
         <option value="energy">Follow the energy</option>
@@ -97,6 +97,56 @@
     </div>
 
     <main>
+      <section class="panel source-intro" aria-labelledby="source-title">
+        <div><p class="eyebrow">ENERGY SYSTEMS EXPLORER</p><h1 id="source-title">Energy Lab</h1><p id="source-subtitle">Explore how different energy technologies convert a resource into electricity.</p></div>
+        <span class="source-tag" id="source-model-tag">RANKINE CYCLE</span>
+      </section>
+      <section id="renewable-workspace" class="renewable-workspace" hidden aria-label="Renewable energy simulator">
+        <aside class="panel controls-panel renewable-controls">
+          <div class="section-heading"><div><p class="eyebrow">01 / RESOURCE & EQUIPMENT</p><h2 id="renewable-controls-title">Wind turbine controls</h2></div><span class="heading-icon">⌁</span></div>
+          <form id="renewable-form">
+            <div class="source-controls" data-model-source="wind">
+              <div class="control"><div class="control-label"><label for="wind-speed">Hub-height wind speed</label><output id="wind-speed-value" for="wind-speed">8.0 <small>m/s</small></output></div><input id="wind-speed" name="windSpeedMs" type="range" min="0" max="30" step="0.5"><div class="range-scale"><span>0 m/s</span><span>30 m/s</span></div></div>
+              <div class="control"><div class="control-label"><label for="rotor-radius">Rotor radius</label><output id="rotor-radius-value" for="rotor-radius">47 <small>m</small></output></div><input id="rotor-radius" name="rotorRadiusM" type="range" min="10" max="100" step="1"><div class="range-scale"><span>10 m</span><span>100 m</span></div></div>
+              <div class="control"><div class="control-label"><label for="rated-power">Rated electrical capacity</label><output id="rated-power-value" for="rated-power">3,000 <small>kW</small></output></div><input id="rated-power" name="ratedPowerKW" type="range" min="100" max="15000" step="100"><div class="range-scale"><span>100 kW</span><span>15 MW</span></div></div>
+              <div class="control"><div class="control-label"><label for="cut-in">Cut-in wind speed</label><output id="cut-in-value" for="cut-in">3.0 <small>m/s</small></output></div><input id="cut-in" name="cutInMs" type="range" min="1" max="8" step="0.5"><div class="range-scale"><span>1 m/s</span><span>8 m/s</span></div></div>
+              <div class="control"><div class="control-label"><label for="rated-speed">Rated wind speed</label><output id="rated-speed-value" for="rated-speed">12.0 <small>m/s</small></output></div><input id="rated-speed" name="ratedMs" type="range" min="8" max="16" step="0.5"><div class="range-scale"><span>8 m/s</span><span>16 m/s</span></div></div>
+              <div class="control"><div class="control-label"><label for="cut-out">Cut-out wind speed</label><output id="cut-out-value" for="cut-out">25.0 <small>m/s</small></output></div><input id="cut-out" name="cutOutMs" type="range" min="18" max="30" step="0.5"><div class="range-scale"><span>18 m/s</span><span>30 m/s</span></div></div>
+            </div>
+            <div class="source-controls" data-model-source="solar-pv" hidden>
+              <div class="control"><div class="control-label"><label for="pv-capacity">Installed PV capacity</label><output id="pv-capacity-value" for="pv-capacity">1,000 <small>kWp</small></output></div><input id="pv-capacity" name="capacityKW" type="range" min="1" max="100000" step="1"><div class="range-scale"><span>1 kWp</span><span>100 MWp</span></div></div>
+              <div class="control"><div class="control-label"><label for="irradiance">Plane-of-array irradiance</label><output id="irradiance-value" for="irradiance">800 <small>W/m²</small></output></div><input id="irradiance" name="irradianceWm2" type="range" min="0" max="1200" step="10"><div class="range-scale"><span>0 W/m²</span><span>1,200 W/m²</span></div></div>
+              <div class="control"><div class="control-label"><label for="ambient-temp">Ambient temperature</label><output id="ambient-temp-value" for="ambient-temp">25 <small>°C</small></output></div><input id="ambient-temp" name="ambientTempC" type="range" min="-20" max="55" step="1"><div class="range-scale"><span>−20 °C</span><span>55 °C</span></div></div>
+              <div class="control"><div class="control-label"><label for="system-loss">Other system losses</label><output id="system-loss-value" for="system-loss">14 <small>%</small></output></div><input id="system-loss" name="systemLossPct" type="range" min="0" max="35" step="1"><div class="range-scale"><span>0%</span><span>35%</span></div></div>
+            </div>
+            <div class="control-actions"><button class="button button-quiet" id="renewable-reset" type="button"><span>↺</span> Reset source inputs</button></div>
+          </form>
+          <p class="panel-note" id="renewable-assumption">Inputs describe a simplified operating point, not a site forecast.</p>
+        </aside>
+        <div class="renewable-results">
+          <section class="panel renewable-output">
+            <div class="section-heading compact-heading"><div><p class="eyebrow">02 / CONVERSION</p><h2 id="renewable-title">Wind to electricity</h2></div><span class="live-label"><span class="live-dot"></span> LIVE</span></div>
+            <div id="renewable-scene" class="renewable-scene" role="img" aria-label="Source conversion schematic"></div>
+            <div class="metrics-grid renewable-metrics">
+              <article class="metric-card metric-power"><div class="metric-top"><span class="metric-icon">ϟ</span><span class="metric-label">ELECTRIC OUTPUT</span></div><div class="metric-value"><span id="renewable-power">—</span><small>MW</small></div><div class="metric-foot" id="renewable-state">Operating state</div></article>
+              <article class="metric-card metric-efficiency"><div class="metric-top"><span class="metric-icon">◉</span><span class="metric-label" id="resource-label">RESOURCE POWER</span></div><div class="metric-value"><span id="renewable-resource">—</span><small>MW</small></div><div class="metric-foot">Energy available at the model boundary</div></article>
+              <article class="metric-card metric-quality"><div class="metric-top"><span class="metric-icon">↘</span><span class="metric-label">NOT CONVERTED</span></div><div class="metric-value"><span id="renewable-loss">—</span><small>MW</small></div><div class="metric-foot">Includes unavailable and conversion losses</div></article>
+              <article class="metric-card metric-rpm"><div class="metric-top"><span class="metric-icon">%</span><span class="metric-label">BOUNDARY CONVERSION</span></div><div class="metric-value"><span id="renewable-efficiency">—</span><small>%</small></div><div class="metric-foot">Electric output ÷ resource input</div></article>
+            </div>
+            <p class="explanation" id="renewable-explanation" aria-live="polite"></p>
+            <div class="renewable-chart-wrap"><svg id="renewable-chart" viewBox="0 0 720 230" role="img" aria-label="Energy conversion from resource to electricity"></svg><div class="renewable-chart-key" aria-hidden="true"><span><i class="key-current"></i>Current setup</span><span class="pin-key"><i class="key-pinned"></i>Pinned reference</span></div></div>
+          </section>
+          <section class="panel renewable-lower">
+            <div class="section-heading"><div><p class="eyebrow">03 / ENERGY BALANCE</p><h2>Follow the energy</h2></div><span class="balance-tag" id="renewable-balance">BALANCED</span></div>
+            <div class="renewable-balance-row"><span>RESOURCE INPUT</span><strong id="renewable-input">— MW</strong><i>→</i><span>ELECTRICITY</span><strong id="renewable-electricity">— MW</strong><span>NOT CONVERTED</span><strong id="renewable-rejected">— MW</strong></div>
+            <div class="energy-split"><span id="renewable-output-bar"></span><span id="renewable-loss-bar"></span></div>
+            <p class="model-note"><span>ⓘ</span><span id="renewable-model-note">Educational operating-point estimate; not a design or site assessment.</span></p>
+            <details class="learn-details"><summary>What is included in this model?</summary><p id="renewable-details">The estimate uses the selected resource and equipment inputs. Weather variability, annual production, grid behavior, and project economics are outside this model.</p></details>
+          </section>
+          <section class="panel renewable-presets"><div class="section-heading compact-heading"><div><p class="eyebrow">04 / QUICK START</p><h2>Explore a scenario</h2></div><button class="compare-button" id="renewable-compare" type="button" aria-pressed="false">＋ Pin current setup</button></div><p class="scenario-instruction">Each scenario loads a complete reference setup for a repeatable comparison. Changing any control switches to a custom setup.</p><div id="renewable-scenario-cards" class="preset-grid" role="group" aria-label="Reference operating scenarios"></div><p id="renewable-scenario-state" class="scenario-state" aria-live="polite">CURRENT SETUP · Custom</p><div id="renewable-compare-card" class="compare-card" aria-live="polite"><span class="compare-empty-mark" aria-hidden="true">＋</span><span><strong>No reference pinned</strong><small>Pin this setup, then select a scenario or change an input to compare.</small></span></div></section>
+          <section class="panel human-benefits"><div class="section-heading"><div><p class="eyebrow">POWER THAT SERVES PEOPLE</p><h2>Why clean electricity matters</h2></div><span class="heading-icon">✳</span></div><div class="benefit-grid"><article><span>01</span><h3>Cleaner air at generation</h3><p>Wind and PV generate electricity without burning fuel on site. When they displace fossil generation, they can reduce combustion-related air pollution and CO₂.</p></article><article><span>02</span><h3>Less fuel dependence</h3><p>Wind and sunlight are local energy flows. Using them can diversify electricity supply and reduce exposure to fuel-price and delivery swings.</p></article><article><span>03</span><h3>Build a system that works</h3><p>Sun and wind vary with weather and time. Strong grids, storage, flexible demand, and other generation help turn variable output into reliable service.</p></article></div><p class="benefit-caveat">Benefits depend on location, what generation is displaced, materials, siting, and how the grid is operated. <a href="https://www.iea.org/reports/sustainable-recovery/electricity" target="_blank" rel="noopener noreferrer">IEA: emissions, air pollution, and water impacts ↗</a> · <a href="https://www.iea.org/reports/renewables-2026/executive-summary" target="_blank" rel="noopener noreferrer">IEA: integration and flexibility ↗</a></p></section>
+        </div>
+      </section>
       <div class="sim-grid">
         <aside class="panel controls-panel layout-component" data-layout-panel="controls" aria-labelledby="controls-title">
           <div class="section-heading">
@@ -180,13 +230,14 @@
 
           <section class="panel presets-panel layout-component" data-layout-panel="presets" aria-labelledby="presets-title">
             <div class="section-heading compact-heading">
-              <div><p class="eyebrow">03 / QUICK START</p><h2 id="presets-title">Choose a plant</h2></div>
-              <span class="small-muted">LOAD SCENARIO</span>
+              <div><p class="eyebrow">03 / QUICK START</p><h2 id="presets-title">Steam-cycle cases</h2></div>
+              <span class="small-muted">ILLUSTRATIVE INPUTS</span>
             </div>
+            <p class="panel-note">These cases change steam-cycle conditions only; they do not simulate the complete coal, nuclear, CSP, or geothermal plant.</p>
             <div class="preset-grid">
               <button class="preset-card" data-preset="coal" type="button"><span class="preset-icon preset-coal">◈</span><span><strong>Coal</strong><small>High pressure</small></span></button>
               <button class="preset-card" data-preset="nuclear" type="button"><span class="preset-icon preset-nuclear">◎</span><span><strong>Nuclear</strong><small>Steady baseload</small></span></button>
-              <button class="preset-card" data-preset="solar" type="button"><span class="preset-icon preset-solar">☼</span><span><strong>Solar thermal</strong><small>Superheated</small></span></button>
+              <button class="preset-card" data-preset="solar" type="button"><span class="preset-icon preset-solar">☼</span><span><strong>CSP heat case</strong><small>Illustrative steam input</small></span></button>
               <button class="preset-card" data-preset="geothermal" type="button"><span class="preset-icon preset-geothermal">♨</span><span><strong>Geothermal</strong><small>Low temperature</small></span></button>
             </div>
           </section>
@@ -264,7 +315,7 @@
     </main>
 
     <footer class="footer">
-      <span>Turbine Lab <span class="footer-divider">/</span> LEARN BY TURNING THE DIALS</span>
+      <span>Energy Lab <span class="footer-divider">/</span> EXPLORE HOW POWER IS MADE</span>
       <nav class="footer-credit" aria-label="About the creator">
         <span>CREATED BY</span>
         <a href="https://aadityahasabnis.com/" target="_blank" rel="noopener noreferrer">Aaditya Hasabnis</a>

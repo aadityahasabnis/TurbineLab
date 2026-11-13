@@ -49,6 +49,7 @@ svg { display: block; }
 .brand-light { color: var(--cyan); }
 .topbar-meta, .eyebrow, .metric-label, .small-muted, .footer, .experiment-tag, .live-label, .range-scale, .energy-total, .chart-legend, .model-note { font-family: "DM Mono", monospace; }
 .topbar-meta { display: flex; align-items: center; gap: 9px; color: var(--text-faint); font-size: 10px; letter-spacing: 1.1px; }
+.topbar-meta select { min-height:32px; padding:0 25px 0 9px; color:var(--text); background:var(--surface-raised); border:1px solid var(--border); border-radius:7px; font:10px "Manrope",sans-serif; letter-spacing:0; }
 .live-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; background: var(--green); box-shadow: 0 0 10px color-mix(in srgb, var(--green) 70%, transparent); }
 .topbar-actions { display: flex; gap: 8px; }
 .icon-button { width: 38px; height: 38px; display: grid; place-items: center; background: transparent; border: 1px solid transparent; border-radius: 10px; color: var(--text-soft); }
@@ -70,10 +71,13 @@ h2, p { margin-top: 0; }
 @media (max-width: 639px) {
   body { padding-bottom: 62px; }
   .topbar { height: 58px; padding: 0 16px; }
-  .topbar-meta { display: none; }
+  .topbar-meta { display: flex; gap:0; }
+  .topbar-meta .live-dot, .topbar-meta label { display:none; }
+  .topbar-meta select { width:91px; min-height:30px; padding:0 4px; font-size:9px; }
   .brand { font-size: 14px; }
   .brand-mark { width: 27px; height: 27px; }
   .topbar-actions { gap: 4px; }
+  .topbar-actions #layout-toggle, .topbar-actions .learn-link { display:none; }
   .topbar.is-hidden { top: -62px; }
   .icon-button { width: 36px; height: 36px; }
   main { padding-top: 12px; }

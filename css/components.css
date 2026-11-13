@@ -146,6 +146,7 @@ input[type="range"]::-moz-range-thumb { width: 44px; height: 44px; border: 0; ba
   backdrop-filter: blur(18px);
 }
 .layout-toolbar:not([hidden]) { display: flex; }
+.renewable-mode .layout-toolbar { display: none !important; }
 .layout-toolbar label { color: var(--text-faint); font: 9px "DM Mono", monospace; letter-spacing: .5px; }
 .layout-toolbar select, .layout-toolbar button {
   min-height: 34px;

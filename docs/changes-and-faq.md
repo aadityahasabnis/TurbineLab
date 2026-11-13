@@ -2,7 +2,7 @@
 
 ## What changes when I move a control?
 
-TurbineLab recomputes the model from one shared input state. The results then update the dashboard, turbine animation, efficiency curve, cycle plot, energy-flow diagram, status message, and shareable URL.
+Energy Lab recomputes the model from one shared input state. The results then update the dashboard, turbine animation, efficiency curve, cycle plot, energy-flow diagram, status message, and shareable URL.
 
 The “What changed?” sentence describes the current operating point. To study cause and effect, pin a setup with **Compare**, move one control, then compare the result and the chart marker.
 
@@ -37,7 +37,7 @@ Quality is defined only inside the liquid–vapor mixture region. Superheated va
 
 ### Why is the exit quality warning important?
 
-Low quality indicates a larger liquid fraction in the exhaust. Droplets can erode turbine blades in real machines. TurbineLab's 85% warning is a classroom threshold, not an operating alarm or universal design limit.
+Low quality indicates a larger liquid fraction in the exhaust. Droplets can erode turbine blades in real machines. Energy Lab's 85% warning is a classroom threshold, not an operating alarm or universal design limit.
 
 ### Why is electric output lower than turbine work?
 

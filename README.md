@@ -1,44 +1,36 @@
-# Turbine Lab
+# Energy Lab
 
-**Short description:** An interactive Rankine cycle simulator for exploring steam power, turbine performance, and energy flow.
-
-Turbine Lab is a browser-based learning experience for exploring how boiler pressure, steam temperature, flow, turbine efficiency, and condenser pressure affect a steam power cycle. Change a control, follow the turbine, and see how work, efficiency, exhaust moisture, and rejected heat move together.
-
-On desktop, inputs and presets stay together in a left rail while the turbine, paired charts, energy balance, and learning panels flow through one visualization workspace. Narrow tablet workspaces stack the charts to keep them readable; mobile keeps its single-column order.
-
-Use **Customize dashboard** to move, resize, or pin any of the seven panels. Your layout is saved in this browser; **Reset layout** restores the responsive defaults.
+Energy Lab is a local-first browser learning studio for exploring how steam, wind, and solar photovoltaic systems turn energy resources into electricity. Each technology has its own inputs and model; results share a clear resource-to-electricity boundary.
 
 ## Try it
 
-- **Live simulator:** [turbinelab.aadityahasabnis.com](https://turbinelab.aadityahasabnis.com/)
-- **Field guide:** [Learn the Rankine cycle](https://turbinelab.aadityahasabnis.com/docs/)
-- **Steam facts:** [A quick guide for curious minds](https://turbinelab.aadityahasabnis.com/docs/quick-facts.html)
+- **Live simulator:** [Energy Lab](https://turbinelab.aadityahasabnis.com/)
+- **Steam field guide:** [Learn the Rankine cycle](docs/)
+- **Model contracts and limits:** [Energy model notes](docs/energy-models.md)
 
 ## Run locally
 
 Serve this directory with any static HTTP server and open `index.html`. The application uses native HTML, CSS, and JavaScript modules; it has no build step or runtime framework.
 
-Run the model checks with Node.js:
+Run the model and site checks with Node.js:
 
 ```powershell
-node --test tests\physics.test.mjs tests\site-seo.test.mjs
+node --test tests\physics.test.mjs tests\energy-models.test.mjs tests\site-seo.test.mjs
 ```
 
 ## Project map
 
-- `index.html` — simulator interface and search/social metadata.
-- `css/` — themes, responsive layout, and controls.
-- `js/physics.mjs` — pure cycle calculations and operating ranges.
-- `js/dashboard-layout.mjs` — responsive panel layout, saved per browser.
-- `js/visualizations.mjs`, `js/turbine.mjs` — diagrams and Canvas animation.
-- `docs/` — equations, assumptions, classroom experiments, presentation notes, and the implementation roadmap.
-- `assets/turbine-lab-og.png` — 1200 × 630 social preview image.
-- `scripts/generate-og-image.ps1` — regenerates the social image with anti-aliased Segoe UI typography on Windows.
+- `index.html` — shared source selector and simulator interface.
+- `js/models/` — source registry plus independent wind and PV estimates.
+- `js/physics.mjs` — existing approximate steam Rankine cycle.
+- `js/renewable-ui.mjs` — wind/PV controls, comparisons, charts, and scenarios.
+- `js/sharing.mjs` — source-aware URLs, including compatibility with older steam links.
+- `docs/` — steam field guide, model assumptions, and future source roadmap.
 
-## Accuracy note
+## Accuracy
 
-This is an educational approximation, not an engineering, safety, or plant-operating tool. The [equations](docs/physics-and-equations.md), [model limits](docs/model-limitations.md), and [accuracy roadmap](docs/roadmap.md) explain what is and is not represented.
+All modules are educational operating-point estimates, not engineering, safety, financial, or site-assessment tools. Wind uses a simplified rotor-power estimate rather than a certified turbine curve. PV uses a simplified cell-temperature and system-loss model rather than location-specific weather. The steam cycle remains approximate and has not been validated by adding these modules. See [model notes](docs/energy-models.md) and [steam model limitations](docs/model-limitations.md).
 
-## Next stage
+## Future modules
 
-The roadmap turns the current visual simulator into a trustworthy **steam-to-grid learning studio**: published benchmark states, a verified property engine, transparent model confidence, explainable plant-level trade-offs, and a presentation-ready classroom mode.
+Concentrating solar thermal (CSP), hydropower, geothermal, storage, and grid comparisons need separate resource and conversion models. The current CSP steam scenario is only an illustrative Rankine input, not a CSP plant simulation.

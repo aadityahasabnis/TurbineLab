@@ -1,14 +1,18 @@
-import { DEFAULTS, PRESETS, clampInputs, computeAll, getQualityStatus } from "./physics.mjs";
+import { DEFAULTS, PRESETS, computeAll, getQualityStatus } from "./physics.mjs";
+import { SOURCE_DEFAULTS, SOURCES, clampSourceInputs, computeSource } from "./models/index.mjs";
 import { renderCycleChart, renderEfficiencyChart, renderSankey, updateSankeyTooltip } from "./visualizations.mjs";
 import { bindEvents } from "./events.mjs";
 import { createTurbine } from "./turbine.mjs";
-import { createShareHandler, readSharedInputs, updateShareUrl } from "./sharing.mjs";
+import { createShareHandler, readSharedState, updateShareUrl } from "./sharing.mjs";
 import { initializeDashboardLayout } from "./dashboard-layout.mjs";
+import { bindRenewableEvents, renderRenewable } from "./renewable-ui.mjs";
 
 const state = {
+  source: "steam",
   inputs: { ...DEFAULTS },
+  sourceInputs: Object.fromEntries(Object.entries(SOURCE_DEFAULTS).map(([source, inputs]) => [source, { ...inputs }])),
   results: null,
-  ui: { theme: "dark", chart: "ts", compare: null, activePreset: null }
+  ui: { theme: "dark", chart: "ts", compare: null, renewablePins: {}, activeScenario: null, activePreset: null }
 };
 
 const dom = Object.fromEntries([
@@ -46,7 +50,7 @@ let toastTimer;
 const shareSetup = createShareHandler(showToast);
 
 function setTheme() {
-  const savedTheme = localStorage.getItem("TurbineLab-theme");
+  const savedTheme = localStorage.getItem("EnergyLab-theme") || localStorage.getItem("TurbineLab-theme");
   state.ui.theme = savedTheme || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
   document.documentElement.dataset.theme = state.ui.theme;
   document.querySelector("#theme-toggle").setAttribute("aria-label", `Switch to ${state.ui.theme === "dark" ? "light" : "dark"} theme`);
@@ -55,13 +59,14 @@ function setTheme() {
 function toggleTheme() {
   state.ui.theme = state.ui.theme === "dark" ? "light" : "dark";
   document.documentElement.dataset.theme = state.ui.theme;
-  localStorage.setItem("TurbineLab-theme", state.ui.theme);
+  localStorage.setItem("EnergyLab-theme", state.ui.theme);
   document.querySelector("#theme-toggle").setAttribute("aria-label", `Switch to ${state.ui.theme === "dark" ? "light" : "dark"} theme`);
   render(state);
 }
 
 function setInputValues(inputs) {
-  state.inputs = clampInputs(inputs);
+  state.inputs = clampSourceInputs(state.source, inputs);
+  state.sourceInputs[state.source] = { ...state.inputs };
   state.ui.activePreset = null;
   for (const [key, input] of Object.entries(dom)) {
     input.value = state.inputs[key];
@@ -85,7 +90,7 @@ function updateInputLabels() {
 }
 
 function updatePresetState() {
-  document.querySelectorAll(".preset-card").forEach((button) => {
+  document.querySelectorAll(".sim-grid .preset-card").forEach((button) => {
     button.classList.toggle("is-active", button.dataset.preset === state.ui.activePreset);
   });
 }
@@ -108,7 +113,22 @@ function setCounterTargets(results) {
 }
 
 function render(state) {
-  state.results = computeAll(state.inputs);
+  state.inputs = clampSourceInputs(state.source, state.inputs);
+  state.sourceInputs[state.source] = { ...state.inputs };
+  state.results = computeSource(state.source, state.inputs);
+  document.querySelector(".sim-grid").hidden = state.source !== "steam";
+  document.querySelector("#renewable-workspace").hidden = state.source === "steam";
+  document.querySelector(".mobile-results").hidden = state.source !== "steam";
+  document.querySelector("#layout-toggle").hidden = state.source !== "steam";
+  document.body.classList.toggle("renewable-mode", state.source !== "steam");
+  document.querySelector("#source-select").value = state.source;
+  if (state.source !== "steam") {
+    renderRenewable(state);
+    updateShareUrl(state.source, state.inputs, state.ui.renewablePins[state.source]?.inputs ?? null);
+    return;
+  }
+  document.querySelector("#source-subtitle").textContent = "Explore how steam conditions shape turbine output, cycle efficiency, and rejected heat.";
+  document.querySelector("#source-model-tag").textContent = "RANKINE CYCLE · TEACHING APPROXIMATION";
   updateInputLabels();
   updatePresetState();
   setCounterTargets(state.results);
@@ -164,7 +184,7 @@ function render(state) {
   };
   document.querySelector("#diagram-caption").textContent = captions[state.ui.chart];
   updateSankeyTooltip(document.querySelector("#sankey-tooltip"), "heat", state.results);
-  updateShareUrl(state.inputs);
+  updateShareUrl(state.source, state.inputs);
 }
 
 function explainResults(inputs, results) {
@@ -183,6 +203,19 @@ function selectChart(chart) {
     tab.classList.toggle("is-active", active);
     tab.setAttribute("aria-selected", String(active));
   });
+  render(state);
+}
+
+function setSource(source, reset = false) {
+  if (!SOURCES[source]) return;
+  state.sourceInputs[state.source] = { ...state.inputs };
+  state.source = source;
+  state.inputs = reset ? { ...SOURCE_DEFAULTS[source] } : { ...(state.sourceInputs[source] ?? SOURCE_DEFAULTS[source]) };
+  if (reset) state.sourceInputs[source] = { ...state.inputs };
+  state.ui.compare = null;
+  state.ui.activeScenario = null;
+  if (reset && state.source !== "steam") delete state.ui.renewablePins[state.source];
+  state.ui.activePreset = null;
   render(state);
 }
 
@@ -223,16 +256,22 @@ function animate(timestamp) {
     displayedCounts[key] = countStarts[key] + (countTargets[key] - countStarts[key]) * eased;
     countElements[key].textContent = displayedCounts[key].toFixed(counterDecimals[key]);
   }
-  if (turbine.isVisible()) turbine.draw(delta);
+  if (state.source === "steam" && turbine.isVisible()) turbine.draw(delta);
   animationFrame = requestAnimationFrame(animate);
 }
 
 setTheme();
 initializeDashboardLayout();
 bindTopbarVisibility();
-const sharedInputs = readSharedInputs(DEFAULTS);
-if (sharedInputs) setInputValues(sharedInputs);
+const sharedState = readSharedState(location.search, SOURCE_DEFAULTS);
+if (sharedState) {
+  state.source = sharedState.source;
+  state.inputs = clampSourceInputs(state.source, sharedState.inputs);
+  state.sourceInputs[state.source] = { ...state.inputs };
+  if (sharedState.pinInputs) state.ui.renewablePins[state.source] = { inputs: clampSourceInputs(state.source, sharedState.pinInputs), name: "Shared reference" };
+}
 render(state);
+state.render = () => render(state);
 bindEvents({
   state,
   dom,
@@ -245,6 +284,7 @@ bindEvents({
   selectChart,
   updateSankeyTooltip
 });
+bindRenewableEvents({ state, render: state.render, setSource });
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) {
     cancelAnimationFrame(animationFrame);

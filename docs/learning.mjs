@@ -1,6 +1,6 @@
 const root = document.documentElement;
 const themeButton = document.querySelector("#theme-toggle");
-const savedTheme = localStorage.getItem("TurbineLab-theme");
+const savedTheme = localStorage.getItem("EnergyLab-theme") || localStorage.getItem("TurbineLab-theme");
 root.dataset.theme = savedTheme || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
 
 function updateThemeButton() {
@@ -11,7 +11,7 @@ function updateThemeButton() {
 
 themeButton.addEventListener("click", () => {
   root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark";
-  localStorage.setItem("TurbineLab-theme", root.dataset.theme);
+  localStorage.setItem("EnergyLab-theme", root.dataset.theme);
   updateThemeButton();
 });
 updateThemeButton();
