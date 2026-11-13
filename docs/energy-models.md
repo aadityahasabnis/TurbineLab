@@ -1,6 +1,6 @@
 # Energy Lab model notes
 
-Energy Lab shares controls, source-aware scenarios, result presentation, comparison, and URL state. The calculations stay separate because each technology has a different resource and conversion chain.
+Energy Lab shares controls, source-aware scenarios, result presentation, comparison, and URL state. The calculations stay separate because each technology has a different resource and conversion chain. Renewable operating-point models can also be evaluated against 24 hourly samples from an explicitly synthetic teaching profile.
 
 ## Common result boundary
 
@@ -39,19 +39,37 @@ Pac = min(capacity, Pdc × (1 − system loss) × inverter efficiency)
 
 The input energy boundary is irradiance over a reference array area derived from a fixed 20% module efficiency. Defaults use NOCT 45 °C, temperature coefficient −0.4%/°C, 14% user-visible system losses, and 96% inverter efficiency. The chart shows output over irradiance for the current temperature and other settings.
 
-This is an operating-point estimate, not PVWatts, a site-specific forecast, or an annual yield estimate. It does not calculate sun position, weather, shading, snow, degradation, or module-specific behavior. Moving ray marks respond to irradiance, while electrical flow marks respond to modeled DC and AC power. Their motion is illustrative and does not represent photon or electron velocity. NREL's [PVWatts manual](https://pvwatts.nrel.gov/downloads/pvwattsv5.pdf) provides reference context for irradiance, temperature, system loss, and inverter modeling.
+This is an operating-point estimate, not PVWatts, a site-specific forecast, or an annual yield estimate. It does not calculate sun position, weather, shading, snow, degradation, or module-specific behavior. Moving ray marks respond to irradiance, while electrical flow marks respond to modeled DC and AC power. Their motion is illustrative and does not represent photon or electron velocity. NREL's [PVWatts Version 5 manual](https://docs.nrel.gov/docs/fy14osti/62641.pdf) provides reference context for irradiance, temperature, system losses, inverter modeling, and aggregation of hourly AC/DC power into energy.
+
+## Synthetic 24-hour source profiles
+
+The “Balanced day”, “Sunny, calm day”, and “Breezy, cloudy day” profiles are deterministic, illustrative arrays generated in code. Their hourly wind speed, irradiance, and ambient temperature values are not measured, geographically located, or sourced weather data. In time-series mode, equipment inputs remain user-controlled while the selected profile supplies resource conditions for each hour. The simulator evaluates 24 hourly operating points with the existing wind/PV model and sums kW samples as 1-hour energy intervals to report MWh. The selected hour can be inspected or played. These are demonstration profiles, not representative-year estimates, forecasts, or a substitute for weather files. NREL's [SAM wind documentation](https://docs.nrel.gov/docs/fy14osti/60570.pdf) and [PVWatts documentation](https://docs.nrel.gov/docs/fy14osti/62641.pdf) provide examples of resource time-series modeling; this simplified app does not reproduce those tools.
+
+## Hybrid hourly dispatch
+
+The hybrid module combines the synthetic profile, the simplified default wind turbine model, and the PV operating-point model, scaled by turbine count and installed PV kW. Demand is a constant user-set kW for each of 24 one-hour intervals. Renewable power serves demand first; surplus charges storage, then is exported when grid-connected or curtailed off-grid. During a deficit, the battery discharges subject to its kW power limit and remaining kWh state; remaining deficit becomes grid import or unserved load. The battery uses fixed 95% charge and 95% discharge efficiencies. Storage capacity (kWh), power limit (kW), and state of charge (kWh) are modeled separately. Battery conversion loss is reported as daily kWh.
+
+The hourly electrical boundary is checked as:
+
+```text
+renewable generation + grid import + battery discharge
+= served load + battery charge + grid export + curtailment
+```
+
+Unserved load is excluded from served demand on the right-hand side. The dispatch uses an idealized bus, no reserve target, one-hour steps, fixed load, and no inverter, voltage, ramp, network, degradation, forecast, or market constraints. It is a teaching example for time-shifting and balancing concepts, not a microgrid design or reliability study. DOE describes how storage energy capacity and power capacity are distinct and how charging, discharging, imports, and curtailment can help balance supply and demand in its [solar integration and storage overview](https://www.energy.gov/cmei/systems/solar-integration-solar-energy-and-storage-basics).
 
 ## Scenarios and comparison
 
-Each named scenario loads its complete source default setup plus the displayed scenario conditions, so it is repeatable even after a user has changed equipment assumptions. Any later control adjustment is identified as a custom operating point. A pinned reference stores its own source and inputs; switching between wind and PV keeps each source's pin separate. Share links include the active source's pin so a comparison can be restored. The chart labels the current point and pinned reference separately.
+Each named operating-point scenario loads its complete source default setup plus the displayed scenario conditions, so it is repeatable even after a user has changed equipment assumptions. Any later control adjustment is identified as a custom operating point. Guided investigations start from a named baseline, pin that baseline, and guide the learner to change one input. A pinned reference stores its own source and inputs; switching between wind and PV keeps each source's pin separate. Renewable day links restore the source, inputs, profile, selected hour, and pin. Hybrid links restore its inputs and selected hour. The chart labels the current point and pinned reference separately.
 
 ## What is deliberately separate or deferred
 
 - **Steam:** Existing Rankine model is preserved and remains an approximate teaching model. Its calculations and steam-only diagrams are not reused by PV or wind.
 - **CSP:** The existing “CSP heat case” card still only selects illustrative steam-cycle conditions. A real CSP model needs a collector/receiver, thermal losses, heat-transfer/storage boundary, and steam-cycle coupling.
 - **Hydro and geothermal:** Each needs resource controls and conversion calculations of its own; they cannot be represented by the wind/PV models or a generic turbine-efficiency slider.
-- **Annual generation, site weather, grid dispatch, storage, cost, and emissions:** Deferred until sourced data and explicit assumptions can travel with each result.
+- **Annual generation and site weather:** Deferred until sourced weather data, data-quality handling, and explicit interval assumptions travel with each result.
+- **Engineering dispatch:** The included hybrid day is only a simplified teaching model; reserves, inverter and grid constraints, detailed battery behavior, realistic loads, cost, and emissions remain out of scope.
 
 ## Validation contract
 
-Automated checks cover equations, input boundaries, finite values, output capacity, zero-resource states, temperature response, source-specific balance, and share-link compatibility. These tests verify the implemented educational contracts; they do not establish engineering accuracy. Stronger accuracy claims require model-specific published benchmarks, provenance, tolerances, and separate validation evidence.
+Automated checks cover equations, input boundaries, finite values, output capacity, zero-resource states, temperature response, source-specific balance, deterministic profile bounds, hourly energy integration, hybrid power balance, storage bounds, off-grid load accounting, and share-link compatibility. Browser checks exercised guided experiments, profile/time playback controls, hybrid configuration, mobile diagram scaling, and URL restoration. These tests verify the implemented educational contracts; they do not establish engineering accuracy. Stronger accuracy claims require model-specific published benchmarks, provenance, tolerances, and separate validation evidence.

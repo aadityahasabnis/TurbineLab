@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import { SOURCE_DEFAULTS, clampSourceInputs, computeSource } from "../js/models/index.mjs";
 import { PV_DEFAULTS, PV_RANGES, clampPVInputs, computeSolarPV } from "../js/models/solar-pv.mjs";
 import { WIND_DEFAULTS, clampWindInputs, computeWind } from "../js/models/wind.mjs";
+import { HYBRID_DEFAULTS, clampHybridInputs, simulateHybrid } from "../js/models/hybrid.mjs";
+import { buildDaySeries, resourceAt } from "../js/models/profiles.mjs";
 import { readSharedState } from "../js/sharing.mjs";
 
 test("wind operating states honor cut-in, rated, and cut-out boundaries", () => {
@@ -123,4 +125,56 @@ test("shared renewable links restore a pinned reference separately from current 
   assert.equal(shared.pinInputs.rotorRadiusM, "47");
   assert.equal(shared.pinInputs.ratedPowerKW, SOURCE_DEFAULTS.wind.ratedPowerKW);
   assert.equal(readSharedState("?source=solar-pv&capacityKW=1000", SOURCE_DEFAULTS).pinInputs, null);
+});
+
+test("shared time-series links restore profile, hour, and renewable source inputs", () => {
+  const shared = readSharedState("?source=wind&windSpeedMs=10&day=1&profile=breezy-cloudy&hour=15", SOURCE_DEFAULTS);
+  assert.equal(shared.source, "wind");
+  assert.equal(shared.inputs.windSpeedMs, "10");
+  assert.deepEqual(shared.ui, { dayMode: true, dayProfile: "breezy-cloudy", dayHour: 15, hybridHour: 15 });
+});
+
+test("shared hybrid links restore system inputs and selected dispatch hour", () => {
+  const shared = readSharedState("?source=hybrid&windCount=3&pvCapacityKW=2400&gridConnected=false&hour=3", SOURCE_DEFAULTS);
+  assert.equal(shared.source, "hybrid");
+  assert.equal(shared.inputs.windCount, "3");
+  assert.equal(shared.inputs.gridConnected, "false");
+  assert.equal(shared.ui.hybridHour, 3);
+});
+
+test("synthetic resource profiles are bounded and repeatable across 24 hours", () => {
+  for (const profileId of ["balanced", "sunny-calm", "breezy-cloudy"]) {
+    const values = Array.from({ length: 24 }, (_, hour) => resourceAt(profileId, hour));
+    assert.equal(values.length, 24);
+    assert.deepEqual(values, Array.from({ length: 24 }, (_, hour) => resourceAt(profileId, hour)));
+    assert.ok(values.every((value) => value.windSpeedMs >= 0 && value.irradianceWm2 >= 0 && value.irradianceWm2 <= 1200));
+  }
+});
+
+test("renewable day simulation uses hourly operating points and integrates kW to MWh", () => {
+  const series = buildDaySeries("solar-pv", PV_DEFAULTS, "sunny-calm", computeSource);
+  assert.equal(series.length, 24);
+  assert.equal(series[0].result.powerKW, 0);
+  assert.ok(series[12].result.powerKW > 0);
+  const dailyMWh = series.reduce((total, hour) => total + hour.result.powerKW, 0) / 1000;
+  assert.ok(Number.isFinite(dailyMWh) && dailyMWh > 0);
+});
+
+test("hybrid hourly dispatch balances generation, storage, load and grid at each hour", () => {
+  const result = simulateHybrid(HYBRID_DEFAULTS);
+  assert.equal(result.hours.length, 24);
+  assert.ok(result.totals.renewableKWh > 0);
+  assert.ok(result.totals.gridImportKWh >= 0 && result.totals.gridExportKWh >= 0);
+  assert.ok(result.totals.maxBalanceResidualKW < 1e-7);
+  assert.ok(result.totals.batteryLossKWh >= 0);
+  assert.ok(result.hours.every((hour) => hour.socKWh >= -1e-9 && hour.socKWh <= HYBRID_DEFAULTS.batteryCapacityKWh + 1e-9));
+});
+
+test("off-grid hybrid dispatch reports unmet load and curtailment without grid flow", () => {
+  const inputs = clampHybridInputs({ ...HYBRID_DEFAULTS, gridConnected: false, windCount: 0, pvCapacityKW: 0, batteryCapacityKWh: 0, batteryPowerKW: 0 });
+  const result = simulateHybrid(inputs);
+  assert.equal(result.totals.gridImportKWh, 0);
+  assert.equal(result.totals.gridExportKWh, 0);
+  assert.equal(result.totals.unmetKWh, result.totals.demandKWh);
+  assert.equal(result.totals.maxBalanceResidualKW, 0);
 });

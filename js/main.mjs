@@ -6,13 +6,16 @@ import { createTurbine } from "./turbine.mjs";
 import { createShareHandler, readSharedState, updateShareUrl } from "./sharing.mjs";
 import { initializeDashboardLayout } from "./dashboard-layout.mjs";
 import { bindRenewableEvents, renderRenewable } from "./renewable-ui.mjs";
+import { buildDaySeries, PROFILE_OPTIONS } from "./models/profiles.mjs";
+import { simulateHybrid } from "./models/hybrid.mjs";
+import { bindHybridEvents, renderHybrid } from "./hybrid-ui.mjs";
 
 const state = {
   source: "steam",
   inputs: { ...DEFAULTS },
   sourceInputs: Object.fromEntries(Object.entries(SOURCE_DEFAULTS).map(([source, inputs]) => [source, { ...inputs }])),
   results: null,
-  ui: { theme: "dark", chart: "ts", compare: null, renewablePins: {}, activeScenario: null, activePreset: null }
+  ui: { theme: "dark", chart: "ts", compare: null, renewablePins: {}, activeScenario: null, activePreset: null, dayProfile: "balanced", dayHour: 12, hybridHour: 12, hybridPlaying: false }
 };
 
 const dom = Object.fromEntries([
@@ -115,16 +118,34 @@ function setCounterTargets(results) {
 function render(state) {
   state.inputs = clampSourceInputs(state.source, state.inputs);
   state.sourceInputs[state.source] = { ...state.inputs };
-  state.results = computeSource(state.source, state.inputs);
+  const isHybrid = state.source === "hybrid";
+  const isRenewable = state.source === "wind" || state.source === "solar-pv";
+  state.operatingInputs = { ...state.inputs };
+  state.daySeries = null;
+  if (isRenewable && state.ui.dayMode) {
+    state.daySeries = buildDaySeries(state.source, state.inputs, state.ui.dayProfile, computeSource);
+    const point = state.daySeries[state.ui.dayHour];
+    if (state.source === "wind") state.operatingInputs.windSpeedMs = point.windSpeedMs;
+    else Object.assign(state.operatingInputs, { irradianceWm2: point.irradianceWm2, ambientTempC: point.ambientTempC });
+  }
+  state.results = isHybrid ? simulateHybrid(state.inputs) : computeSource(state.source, state.operatingInputs);
   document.querySelector(".sim-grid").hidden = state.source !== "steam";
-  document.querySelector("#renewable-workspace").hidden = state.source === "steam";
+  document.querySelector("#renewable-workspace").hidden = !isRenewable;
+  document.querySelector("#hybrid-workspace").hidden = !isHybrid;
   document.querySelector(".mobile-results").hidden = state.source !== "steam";
   document.querySelector("#layout-toggle").hidden = state.source !== "steam";
-  document.body.classList.toggle("renewable-mode", state.source !== "steam");
+  document.body.classList.toggle("renewable-mode", isRenewable || isHybrid);
   document.querySelector("#source-select").value = state.source;
-  if (state.source !== "steam") {
+  if (isHybrid) {
+    document.querySelector("#source-subtitle").textContent = "Explore a hybrid renewable system balancing generation, storage, load and grid flows.";
+    document.querySelector("#source-model-tag").textContent = "WIND · SOLAR PV · STORAGE";
+    renderHybrid(state);
+    updateShareUrl(state.source, state.inputs, null, state.ui);
+    return;
+  }
+  if (isRenewable) {
     renderRenewable(state);
-    updateShareUrl(state.source, state.inputs, state.ui.renewablePins[state.source]?.inputs ?? null);
+    updateShareUrl(state.source, state.inputs, state.ui.renewablePins[state.source]?.inputs ?? null, state.ui);
     return;
   }
   document.querySelector("#source-subtitle").textContent = "Explore how steam conditions shape turbine output, cycle efficiency, and rejected heat.";
@@ -184,7 +205,7 @@ function render(state) {
   };
   document.querySelector("#diagram-caption").textContent = captions[state.ui.chart];
   updateSankeyTooltip(document.querySelector("#sankey-tooltip"), "heat", state.results);
-  updateShareUrl(state.source, state.inputs);
+  updateShareUrl(state.source, state.inputs, null, state.ui);
 }
 
 function explainResults(inputs, results) {
@@ -268,6 +289,10 @@ if (sharedState) {
   state.source = sharedState.source;
   state.inputs = clampSourceInputs(state.source, sharedState.inputs);
   state.sourceInputs[state.source] = { ...state.inputs };
+  state.ui.dayMode = sharedState.ui?.dayMode ?? false;
+  state.ui.dayProfile = PROFILE_OPTIONS.some((profile) => profile.id === sharedState.ui?.dayProfile) ? sharedState.ui.dayProfile : "balanced";
+  state.ui.dayHour = Number.isFinite(sharedState.ui?.dayHour) ? Math.max(0, Math.min(23, sharedState.ui.dayHour)) : 12;
+  state.ui.hybridHour = state.ui.dayHour;
   if (sharedState.pinInputs) state.ui.renewablePins[state.source] = { inputs: clampSourceInputs(state.source, sharedState.pinInputs), name: "Shared reference" };
 }
 render(state);
@@ -285,6 +310,7 @@ bindEvents({
   updateSankeyTooltip
 });
 bindRenewableEvents({ state, render: state.render, setSource });
+bindHybridEvents(state, state.render);
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) {
     cancelAnimationFrame(animationFrame);

@@ -24,10 +24,18 @@ export function readSharedState(search, sourceDefaults) {
       if (query.has(`ref_${key}`)) pinInputs[key] = query.get(`ref_${key}`);
     }
   }
-  return { source, inputs, pinInputs };
+  return {
+    source, inputs, pinInputs,
+    ui: {
+      dayMode: query.get("day") === "1",
+      dayProfile: query.get("profile") ?? "balanced",
+      dayHour: Number(query.get("hour") ?? 12),
+      hybridHour: Number(query.get("hour") ?? 12)
+    }
+  };
 }
 
-export function updateShareUrl(source, inputs, pinnedInputs = null) {
+export function updateShareUrl(source, inputs, pinnedInputs = null, ui = {}) {
   const query = new URLSearchParams({ source });
   if (source === "steam") {
     query.set("p", inputs.pressureMPa);
@@ -39,6 +47,14 @@ export function updateShareUrl(source, inputs, pinnedInputs = null) {
     for (const [key, value] of Object.entries(inputs)) query.set(key, value);
     if (pinnedInputs) {
       for (const [key, value] of Object.entries(pinnedInputs)) query.set(`ref_${key}`, value);
+    }
+    if (source === "hybrid") query.set("hour", String(ui.hybridHour ?? 12));
+    else {
+      if (ui.dayMode) query.set("day", "1");
+      if (ui.dayMode) {
+        query.set("profile", ui.dayProfile ?? "balanced");
+        query.set("hour", String(ui.dayHour ?? 12));
+      }
     }
   }
   history.replaceState(null, "", `${location.pathname}?${query}${location.hash}`);

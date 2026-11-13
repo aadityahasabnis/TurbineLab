@@ -1,4 +1,5 @@
-import { computeSource, SOURCE_DEFAULTS } from "./models/index.mjs";
+import { clampSourceInputs, computeSource, SOURCE_DEFAULTS } from "./models/index.mjs";
+import { PROFILE_OPTIONS } from "./models/profiles.mjs";
 
 const SOURCE_COPY = {
   wind: {
@@ -29,6 +30,11 @@ const CONTROL_META = {
 
 function formatMW(value) { return (value / 1000).toFixed(2); }
 function themeColor(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+function rotorVisualScale(radiusM) {
+  // Map the control's 10–100 m span to a legible 22–77 px blade radius inside the scene.
+  const radiusPx = 22 + (Math.min(100, Math.max(10, radiusM)) - 10) * (55 / 90);
+  return radiusPx / 64;
+}
 function matchingScenario(source, inputs) {
   return SOURCE_COPY[source].scenarios.find((scenario) => {
     const expected = { ...SOURCE_DEFAULTS[source], ...scenario.patch };
@@ -57,6 +63,7 @@ function renderScene(host, state, result) {
     if (!needsBuild) {
       host.querySelector(".scene-wind-value").textContent = `${state.inputs.windSpeedMs.toFixed(1)} m/s`;
       host.querySelector(".scene-rotor-label").textContent = `ROTOR RADIUS ${state.inputs.rotorRadiusM} m`;
+      host.querySelector(".rotor-blades").setAttribute("transform", `translate(326 78) scale(${rotorVisualScale(state.inputs.rotorRadiusM).toFixed(3)}) translate(-326 -78)`);
       host.querySelector(".scene-status").textContent = `${result.operatingState.toUpperCase()} · RATED CAPACITY ${formatMW(state.inputs.ratedPowerKW)} MW`;
       host.querySelector(".scene-output").textContent = `${formatMW(result.powerKW)} MW`;
       host.querySelector(".wind-stream").setAttribute("opacity", `${Math.min(.75, state.inputs.windSpeedMs / 30)}`);
@@ -65,7 +72,7 @@ function renderScene(host, state, result) {
     host.dataset.sceneSource = state.source;
     updateTheme();
     const color = themeColor("--cyan");
-    host.innerHTML = `<svg viewBox="0 0 760 250" role="img" aria-labelledby="wind-title wind-desc"><title id="wind-title">Wind turbine resource and electrical output</title><desc id="wind-desc">Wind streak speed follows the selected wind input. Rotor rotation responds to estimated electrical output as an illustration; this model does not calculate rotor RPM. Rotor and tower drawing are not to scale.</desc><defs><linearGradient id="wind-sky" x2="0" y2="1"><stop stop-color="${color}" stop-opacity=".10"/><stop offset="1" stop-color="${themeColor("--surface-raised")}" stop-opacity=".18"/></linearGradient><marker id="wind-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="${color}"/></marker></defs><rect x="1" y="1" width="758" height="248" rx="14" fill="url(#wind-sky)"/><text x="28" y="35" class="scene-label">HUB-HEIGHT WIND</text><text x="28" y="62" class="scene-value scene-wind-value">${state.inputs.windSpeedMs.toFixed(1)} m/s</text><path class="wind-stream" d="M28 90H272 M28 111H272 M28 132H272" opacity="${Math.min(.75, state.inputs.windSpeedMs / 30)}"/><path d="M270 111H307" stroke="${color}" stroke-width="3" marker-end="url(#wind-arrow)"/><g class="wind-rotor"><path d="M326 78 Q333 34 342 14 Q349 6 352 23 L356 70Z"/><path d="M326 78 Q333 34 342 14 Q349 6 352 23 L356 70Z" transform="rotate(120 326 78)"/><path d="M326 78 Q333 34 342 14 Q349 6 352 23 L356 70Z" transform="rotate(240 326 78)"/><circle cx="326" cy="78" r="10"/></g><path d="M326 88L344 214H307Z" fill="${themeColor("--surface-raised")}" stroke="${color}" stroke-width="2"/><path d="M300 214h52" stroke="${themeColor("--border-strong")}" stroke-width="4"/><text x="326" y="232" text-anchor="middle" class="scene-label scene-rotor-label">ROTOR RADIUS ${state.inputs.rotorRadiusM} m</text><path d="M356 78H451" stroke="${color}" stroke-width="3"/><rect x="454" y="48" width="116" height="60" rx="8" fill="${themeColor("--surface-raised")}" stroke="${color}" stroke-width="2"/><path d="M508 61l-11 17h13l-7 16 22-24h-14l7-9z" fill="${themeColor("--amber")}"/><text x="512" y="130" text-anchor="middle" class="scene-label">TURBINE + GENERATOR</text><path d="M572 78H627" stroke="${color}" stroke-width="3" marker-end="url(#wind-arrow)" class="power-flow"/><text x="681" y="75" text-anchor="middle" class="scene-output">${formatMW(result.powerKW)} MW</text><text x="681" y="98" text-anchor="middle" class="scene-label">ELECTRIC OUTPUT</text><rect x="28" y="169" width="704" height="42" rx="7" fill="${themeColor("--surface-raised")}" stroke="${themeColor("--border")}"/><circle cx="47" cy="190" r="5" fill="${stopped ? themeColor("--amber") : color}"/><text x="62" y="194" class="scene-label scene-status">${result.operatingState.toUpperCase()} · RATED CAPACITY ${formatMW(state.inputs.ratedPowerKW)} MW</text><text x="28" y="235" class="scene-note">Rotor motion is illustrative; rotor RPM is not modeled</text></svg>`;
+    host.innerHTML = `<svg viewBox="0 0 760 250" role="img" aria-labelledby="wind-title wind-desc"><title id="wind-title">Wind turbine resource and electrical output</title><desc id="wind-desc">Blade length scales with the selected rotor radius to show relative rotor size. The displayed drawing is a schematic, not to engineering scale. Rotor rotation responds to estimated electrical output as an illustration; this model does not calculate rotor RPM.</desc><defs><linearGradient id="wind-sky" x2="0" y2="1"><stop stop-color="${color}" stop-opacity=".10"/><stop offset="1" stop-color="${themeColor("--surface-raised")}" stop-opacity=".18"/></linearGradient><marker id="wind-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="${color}"/></marker></defs><rect x="1" y="1" width="758" height="248" rx="14" fill="url(#wind-sky)"/><text x="28" y="35" class="scene-label">HUB-HEIGHT WIND</text><text x="28" y="62" class="scene-value scene-wind-value">${state.inputs.windSpeedMs.toFixed(1)} m/s</text><path class="wind-stream" d="M28 90H272 M28 111H272 M28 132H272" opacity="${Math.min(.75, state.inputs.windSpeedMs / 30)}"/><path d="M270 111H307" stroke="${color}" stroke-width="3" marker-end="url(#wind-arrow)"/><g class="wind-rotor"><g class="rotor-blades" transform="translate(326 78) scale(${rotorVisualScale(state.inputs.rotorRadiusM).toFixed(3)}) translate(-326 -78)"><path d="M326 78 Q333 34 342 14 Q349 6 352 23 L356 70Z"/><path d="M326 78 Q333 34 342 14 Q349 6 352 23 L356 70Z" transform="rotate(120 326 78)"/><path d="M326 78 Q333 34 342 14 Q349 6 352 23 L356 70Z" transform="rotate(240 326 78)"/></g><circle cx="326" cy="78" r="10"/></g><path d="M326 88L344 214H307Z" fill="${themeColor("--surface-raised")}" stroke="${color}" stroke-width="2"/><path d="M300 214h52" stroke="${themeColor("--border-strong")}" stroke-width="4"/><text x="326" y="232" text-anchor="middle" class="scene-label scene-rotor-label">ROTOR RADIUS ${state.inputs.rotorRadiusM} m</text><path d="M356 78H451" stroke="${color}" stroke-width="3" marker-end="url(#wind-arrow)"/><rect x="454" y="48" width="116" height="60" rx="8" fill="${themeColor("--surface-raised")}" stroke="${color}" stroke-width="2"/><path d="M508 61l-11 17h13l-7 16 22-24h-14l7-9z" fill="${themeColor("--amber")}"/><text x="512" y="130" text-anchor="middle" class="scene-label">TURBINE + GENERATOR</text><path d="M572 78H627" stroke="${color}" stroke-width="3" marker-end="url(#wind-arrow)" class="power-flow"/><text x="681" y="75" text-anchor="middle" class="scene-output">${formatMW(result.powerKW)} MW</text><text x="681" y="98" text-anchor="middle" class="scene-label">ELECTRIC OUTPUT</text><rect x="28" y="169" width="704" height="42" rx="7" fill="${themeColor("--surface-raised")}" stroke="${themeColor("--border")}"/><circle cx="47" cy="190" r="5" fill="${stopped ? themeColor("--amber") : color}"/><text x="62" y="194" class="scene-label scene-status">${result.operatingState.toUpperCase()} · RATED CAPACITY ${formatMW(state.inputs.ratedPowerKW)} MW</text><text x="28" y="235" class="scene-note">Rotor size is relative; rotation is illustrative, not calculated RPM</text></svg>`;
   } else {
     host.classList.remove("has-wind", "is-stopped");
     const irradiance = state.inputs.irradianceWm2;
@@ -138,6 +145,8 @@ function renderScenarios(state) {
 export function renderRenewable(state) {
   const config = SOURCE_COPY[state.source];
   const result = state.results;
+  const modelInputs = state.operatingInputs ?? state.inputs;
+  const modelState = { ...state, inputs: modelInputs };
   document.querySelector("#source-subtitle").textContent = config.subtitle;
   document.querySelector("#source-model-tag").textContent = config.tag;
   document.querySelector("#renewable-controls-title").textContent = config.controls;
@@ -148,8 +157,9 @@ export function renderRenewable(state) {
   for (const [key, meta] of Object.entries(CONTROL_META)) {
     const input = document.querySelector(`#renewable-form [name="${key}"]`);
     if (!input) continue;
-    input.value = state.inputs[key];
-    const value = Number(state.inputs[key]);
+    input.value = modelInputs[key];
+    const value = Number(modelInputs[key]);
+    input.disabled = Boolean(state.ui.dayMode && ((state.source === "wind" && key === "windSpeedMs") || (state.source === "solar-pv" && ["irradianceWm2", "ambientTempC"].includes(key))));
     document.querySelector(`#${meta.output}`).innerHTML = `${value.toLocaleString(undefined, { minimumFractionDigits: meta.decimals, maximumFractionDigits: meta.decimals })} <small>${meta.suffix}</small>`;
     input.style.setProperty("--range-progress", `${((value - Number(input.min)) / (Number(input.max) - Number(input.min))) * 100}%`);
   }
@@ -158,7 +168,7 @@ export function renderRenewable(state) {
   document.querySelector("#renewable-loss").textContent = formatMW(result.lossesKW);
   document.querySelector("#renewable-efficiency").textContent = (result.conversionEfficiency * 100).toFixed(1);
   document.querySelector("#renewable-state").textContent = state.source === "wind" ? result.operatingState : `${result.cellTempC.toFixed(0)} °C estimated cell temperature`;
-  renderScene(document.querySelector("#renewable-scene"), state, result);
+  renderScene(document.querySelector("#renewable-scene"), modelState, result);
   document.querySelector("#renewable-explanation").textContent = result.explanation;
   document.querySelector("#renewable-input").textContent = `${formatMW(result.availablePowerKW)} MW`;
   document.querySelector("#renewable-electricity").textContent = `${formatMW(result.powerKW)} MW`;
@@ -173,7 +183,8 @@ export function renderRenewable(state) {
     : "The model estimates cell temperature from ambient temperature and irradiance using a NOCT approximation, applies a temperature coefficient, system losses, and inverter efficiency, then caps output at installed capacity. It does not model sun position, shading, snow, degradation, or hourly weather.";
   document.querySelector("#renewable-balance").textContent = Math.abs(result.availablePowerKW - result.powerKW - result.lossesKW) < 1e-6 ? "BALANCED" : "CHECK BALANCE";
   document.querySelector("#renewable-chart").setAttribute("aria-label", state.source === "wind" ? "Simplified wind turbine power curve" : "Solar PV output by irradiance");
-  renderCurve(document.querySelector("#renewable-chart"), state, result);
+  renderCurve(document.querySelector("#renewable-chart"), modelState, result);
+  renderDaySimulation(state);
   renderScenarios(state);
   const pin = state.ui.renewablePins?.[state.source] ?? null;
   document.body.classList.toggle("renewable-has-pin", Boolean(pin));
@@ -191,6 +202,64 @@ export function renderRenewable(state) {
     const resourceLabel = state.source === "wind" ? `${pin.inputs[resourceKey].toFixed(1)} m/s wind` : `${pin.inputs[resourceKey]} W/m² sunlight`;
     compareCard.innerHTML = `<div class="compare-card-head"><span class="compare-pin-icon" aria-hidden="true">⌖</span><span><strong>PINNED REFERENCE</strong><small>${pin.name} · ${resourceLabel}</small></span><span class="compare-card-output">${formatMW(baseline.powerKW)} <small>MW</small></span></div><div class="compare-card-result"><span>Current output <strong>${formatMW(result.powerKW)} MW</strong></span><span class="compare-delta ${delta > 0 ? "is-up" : delta < 0 ? "is-down" : ""}">Change <strong>${delta > 0 ? "+" : ""}${formatMW(delta)} MW</strong></span></div>`;
   }
+  renderExperiments(state);
+}
+
+const EXPERIMENTS = {
+  wind: [
+    { id: "wind-cubic", title: "Feel the cubic wind law", key: "windSpeedMs", start: 6, target: 12, unit: "m/s", prompt: "Raise wind speed from 6 to 12 m/s. Resource power in the wind stream scales with speed cubed before turbine limits." },
+    { id: "wind-cutout", title: "Explore a safety shutdown", key: "windSpeedMs", start: 24, target: 26, unit: "m/s", prompt: "Move from just below to above cut-out. The simplified turbine model stops electrical output at its cut-out threshold." },
+    { id: "wind-rotor", title: "Change the swept area", key: "rotorRadiusM", start: 30, target: 60, unit: "m", prompt: "Double rotor radius at fixed wind. Swept area grows with radius squared, while the power curve and rated capacity can limit output." }
+  ],
+  "solar-pv": [
+    { id: "pv-sun", title: "Follow the sunlight", key: "irradianceWm2", start: 500, target: 1000, unit: "W/m²", prompt: "Double irradiance at fixed array size and temperature. DC output responds approximately linearly before model limits." },
+    { id: "pv-heat", title: "Heat the modules", key: "ambientTempC", start: 15, target: 45, unit: "°C", prompt: "Raise ambient temperature while holding sunlight fixed. Estimated cell heat and the negative temperature coefficient reduce output." },
+    { id: "pv-loss", title: "Trace system losses", key: "systemLossPct", start: 5, target: 25, unit: "%", prompt: "Increase the user-set system loss assumption. The model applies it before inverter conversion." }
+  ]
+};
+
+function renderExperiments(state) {
+  const cards = document.querySelector("#experiment-cards");
+  const active = state.ui.experiment;
+  cards.innerHTML = EXPERIMENTS[state.source].map((experiment) => `<button type="button" class="experiment-card" data-experiment="${experiment.id}" aria-pressed="${active?.id === experiment.id}"><span>ONE VARIABLE · ${experiment.key.replace(/[A-Z]/g, (letter) => ` ${letter.toLowerCase()}`).toUpperCase()}</span><strong>${experiment.title}</strong><small>${experiment.prompt.split(".")[0]}.</small></button>`).join("");
+  const status = document.querySelector("#experiment-status");
+  if (!active || active.source !== state.source) {
+    status.classList.remove("is-complete");
+    status.textContent = "Choose an investigation. Its baseline is pinned before you adjust the highlighted control.";
+    return;
+  }
+  const current = Number(state.inputs[active.key]);
+  const reached = active.target > active.start ? current >= active.target : current <= active.target;
+  const label = ({ windSpeedMs: "Hub-height wind speed", rotorRadiusM: "Rotor radius", irradianceWm2: "Plane-of-array irradiance", ambientTempC: "Ambient temperature", systemLossPct: "Other system losses" })[active.key];
+  status.classList.toggle("is-complete", reached);
+  status.textContent = reached
+    ? `${active.prompt} Current: ${current} ${active.unit}. Compare live output with the pinned ${active.start} ${active.unit} baseline.`
+    : `${active.prompt} Set “${label}” to ${active.target} ${active.unit}. Current: ${current} ${active.unit}.`;
+}
+
+function renderDaySimulation(state) {
+  const series = state.daySeries ?? [];
+  const profile = PROFILE_OPTIONS.find((item) => item.id === state.ui.dayProfile) ?? PROFILE_OPTIONS[0];
+  document.querySelector("#day-profile").value = state.ui.dayProfile;
+  document.querySelector("#day-profile-note").textContent = profile.note;
+  document.querySelector("#day-hour").value = state.ui.dayHour;
+  document.querySelector("#day-hour-label").textContent = `${String(state.ui.dayHour).padStart(2,"0")}:00`;
+  document.querySelector("#day-hour-output").textContent = `${String(state.ui.dayHour).padStart(2,"0")}:00`;
+  document.querySelector("#day-power").textContent = formatMW(state.results.powerKW);
+  const outputs = series.map((point) => point.result.powerKW);
+  document.querySelector("#day-energy").textContent = (outputs.reduce((sum, value) => sum + value, 0) / 1000).toFixed(2);
+  document.querySelector("#day-peak").textContent = (Math.max(0, ...outputs) / 1000).toFixed(2);
+  document.querySelector("#day-play").textContent = state.ui.dayPlaying ? "Ⅱ Pause day" : "▶ Play day";
+  renderDayChart(document.querySelector("#day-chart"), series, state.ui.dayHour);
+}
+
+function renderDayChart(svg, series, hour) {
+  const color = themeColor("--cyan"), amber = themeColor("--amber"), faint = themeColor("--text-faint"), grid = themeColor("--chart-grid");
+  const peak = Math.max(1, ...series.map((point) => point.result.powerKW));
+  const x = (i) => 48 + i * 28.3, y = (v) => 176 - v / peak * 128;
+  const path = series.map((point, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(point.result.powerKW).toFixed(1)}`).join(" ");
+  const now = series[hour];
+  svg.innerHTML = `<g stroke="${grid}" stroke-dasharray="3 5"><path d="M48 48H700M48 112H700M48 176H700"/></g><path d="${path}" fill="none" stroke="${color}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/><path d="M48 176${series.map((point,i)=>` L${x(i).toFixed(1)},${y(point.result.powerKW).toFixed(1)}`).join("")} L700 176Z" fill="${color}" opacity=".09"/><line x1="${x(hour)}" y1="40" x2="${x(hour)}" y2="177" stroke="${amber}" stroke-dasharray="4 4"/><circle cx="${x(hour)}" cy="${y(now?.result.powerKW ?? 0)}" r="5" fill="${amber}"/><text x="48" y="22" fill="${faint}" font-size="10">ELECTRIC POWER · kW</text><text x="48" y="200" fill="${faint}" font-size="9">00</text><text x="218" y="200" fill="${faint}" font-size="9">06</text><text x="388" y="200" fill="${faint}" font-size="9">12</text><text x="558" y="200" fill="${faint}" font-size="9">18</text><text x="693" y="200" fill="${faint}" font-size="9">23</text><text x="38" y="51" text-anchor="end" fill="${faint}" font-size="9">${(peak/1000).toFixed(1)} MW</text>`;
 }
 
 export function bindRenewableEvents({ state, render, setSource }) {
@@ -208,6 +277,8 @@ export function bindRenewableEvents({ state, render, setSource }) {
     if (!scenario) return;
     state.inputs = { ...SOURCE_DEFAULTS[state.source], ...scenario.patch };
     state.ui.activeScenario = scenario.id;
+    state.ui.dayMode = false;
+    state.ui.experiment = null;
     render();
   });
   document.querySelector("#renewable-compare").addEventListener("click", () => {
@@ -217,6 +288,28 @@ export function bindRenewableEvents({ state, render, setSource }) {
       const scenario = matchingScenario(state.source, state.inputs);
       state.ui.renewablePins[state.source] = { inputs: { ...state.inputs }, name: scenario?.title ?? "Custom operating point" };
     }
+    render();
+  });
+  document.querySelector("#experiment-cards").addEventListener("click", (event) => {
+    const experiment = EXPERIMENTS[state.source].find((item) => item.id === event.target.closest("[data-experiment]")?.dataset.experiment);
+    if (!experiment) return;
+    const startInputs = { ...state.inputs, [experiment.key]: experiment.start };
+    state.inputs = clampSourceInputs(state.source, startInputs);
+    state.sourceInputs[state.source] = { ...state.inputs };
+    state.ui.renewablePins[state.source] = { inputs: { ...state.inputs }, name: `${experiment.start} ${experiment.unit} baseline` };
+    state.ui.experiment = { ...experiment, source: state.source };
+    state.ui.dayMode = false;
+    render();
+  });
+  document.querySelector("#day-profile").addEventListener("change", (event) => { state.ui.dayProfile = event.target.value; state.ui.dayMode = true; render(); });
+  document.querySelector("#day-hour").addEventListener("input", (event) => { state.ui.dayHour = Number(event.target.value); state.ui.dayMode = true; render(); });
+  document.querySelector("#day-step").addEventListener("click", () => { state.ui.dayHour = ((state.ui.dayHour ?? 12) + 1) % 24; state.ui.dayMode = true; render(); });
+  let dayTimer = null;
+  document.querySelector("#day-play").addEventListener("click", () => {
+    state.ui.dayPlaying = !state.ui.dayPlaying;
+    state.ui.dayMode = true;
+    if (dayTimer) clearInterval(dayTimer);
+    dayTimer = state.ui.dayPlaying ? setInterval(() => { state.ui.dayHour = ((state.ui.dayHour ?? 12) + 1) % 24; render(); }, 700) : null;
     render();
   });
 }
