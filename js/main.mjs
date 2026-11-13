@@ -149,7 +149,12 @@ function render(state) {
     return;
   }
   document.querySelector("#source-subtitle").textContent = "Explore how steam conditions shape turbine output, cycle efficiency, and rejected heat.";
-  document.querySelector("#source-model-tag").textContent = "RANKINE CYCLE · TEACHING APPROXIMATION";
+  document.querySelector("#source-model-tag").textContent = state.results.propertyMethod === "iapws-if97-regions-1-2-and-4"
+    ? "RANKINE CYCLE · IAPWS-IF97 REGIONS 1 / 2 / 4"
+    : "RANKINE CYCLE · HIGH-PRESSURE APPROXIMATION";
+  document.querySelector("#steam-property-note").textContent = state.results.propertyMethod === "iapws-if97-regions-1-2-and-4"
+    ? "Steam properties use IAPWS-IF97 Regions 1, 2, and 4 at this operating point. The cycle still simplifies equipment behavior and is not a design or operating tool."
+    : "Above 16.5292 MPa, high-side saturation states can require dense-fluid Region 3 properties, which are not implemented. The complete cycle uses a labeled high-pressure approximation; do not treat this as a validated design result.";
   updateInputLabels();
   updatePresetState();
   setCounterTargets(state.results);

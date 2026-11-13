@@ -2,108 +2,71 @@
 
 ## The simple Rankine cycle
 
-The model describes four main states:
-
-1. **Condenser outlet (state 3):** saturated liquid at condenser pressure.
-2. **Pump outlet (state 4):** liquid raised to boiler pressure.
-3. **Turbine inlet (state 1):** steam at the selected boiler pressure and temperature.
-4. **Turbine outlet (state 2):** steam after expansion to condenser pressure.
-
-The order around the closed loop is 3 → 4 → 1 → 2 → 3. The boiler adds heat, the turbine produces shaft work, the condenser rejects heat, and the pump returns the liquid to high pressure.
+The model follows four main states: saturated liquid leaving the condenser (3), pressurized liquid leaving the pump (4), steam entering the turbine (1), and expanded steam leaving the turbine (2). The loop is 3 → 4 → 1 → 2 → 3.
 
 ## Symbols and units
 
-| Symbol | Meaning | Units in the model |
+| Symbol | Meaning | Units |
 |---|---|---|
-| `ṁ` | steam mass flow rate | kg/s |
-| `h` | specific enthalpy | kJ/kg |
-| `s` | specific entropy | kJ/(kg·K) |
-| `P` | pressure | MPa internally; kPa for condenser input |
-| `T` | temperature | °C for display, K in logarithms |
-| `x` | vapor mass fraction (steam quality) | 0–1 |
-| `ηt` | turbine isentropic efficiency | fraction |
-| `ηg` | generator efficiency | fraction (fixed at 0.98) |
-| `Q̇`, `Ẇ` | heat/work rate | kW in intermediate calculations, MW in display |
+| `ṁ` | Steam mass flow | kg/s |
+| `h` | Specific enthalpy | kJ/kg |
+| `s` | Specific entropy | kJ/(kg·K) |
+| `P` | Pressure | MPa internally; condenser input in kPa |
+| `T` | Temperature | K in property equations; °C in controls |
+| `x` | Vapor mass fraction in a two-phase mixture | 0–1 |
+| `ηt` | Turbine isentropic efficiency | fraction |
+| `ηg` | Generator efficiency | fixed at 0.98 |
+| `Q̇`, `Ẇ` | Heat and work rates | MW in results |
 
-Because `1 kJ/s = 1 kW`, multiplying kg/s by kJ/kg gives kW.
+Multiplying kg/s by kJ/kg yields kW; results are divided by 1,000 for MW.
 
-## Calculation chain
+## Steam-property method
 
-### 1. Turbine inlet
+The browser implementation evaluates the official IAPWS-IF97 dimensionless Gibbs equations for Region 1 (compressed liquid) and Region 2 (superheated vapor), plus the Region 4 saturation curve. The property equations derive enthalpy, entropy and specific volume from the Gibbs function and its derivatives. Saturated liquid and vapor states below the Region 2/3 boundary use Region 1 and Region 2 at the saturation pressure and temperature.
 
-Saturated liquid/vapor properties are interpolated from a small pressure table. For superheat, the learning model estimates:
+The standard Region 2/3 boundary is about 16.5292 MPa at 623.15 K and curves upward with temperature. This release does not implement Region 3's dense-fluid Helmholtz equation or high-side saturation properties above that boundary. For a conservative boundary, the complete cycle switches to its previous approximate path whenever boiler pressure exceeds 16.5292 MPa, including some hot inlet states that could individually be evaluated with Region 2. The result label discloses this pressure-based fallback.
 
-```text
-h1 = hg(Pboiler) + cp(Pboiler) × max(0, Tinput − Tsat(Pboiler))
-s1 = sg(Pboiler) + cp(Pboiler) × ln(T1 / Tsat,K)
-cp(P) = 2.08 + 0.16 × P(MPa) kJ/(kg·K)
-```
+At the inlet, if the selected temperature is below saturation, the state is treated as saturated vapor at that pressure and the UI warns that it substituted the effective saturation temperature. This preserves the simulator's existing behavior; it is not subcooled-liquid modeling.
 
-If the selected temperature is below saturation, the inlet is treated as saturated vapor at the saturation temperature. The interface shows a warning so the effective state is explicit.
+## Cycle calculation
 
-### 2. Ideal expansion and real turbine outlet
-
-The ideal reference expansion is isentropic, so `s2s = s1`. At condenser pressure, if the ideal outlet lies in the two-phase region:
+At condenser pressure, saturated liquid and vapor provide `hf`, `hg`, `sf`, `sg`, `vf`, and `vg`. If the isentropic outlet entropy is inside the saturation dome:
 
 ```text
-x2s = (s1 − sf,cond) / sfg,cond
-h2s = hf,cond + x2s × hfg,cond
+x2s = (s1 − sf) / (sg − sf)
+h2s = hf + x2s × (hg − hf)
 ```
 
-If the ideal outlet is above the saturated-vapor line, a simplified superheat relation is used. Turbine efficiency then sets the actual enthalpy drop:
+Above the saturated-vapor line, the isentropic outlet is solved in Region 2 at condenser pressure. Turbine efficiency sets the actual enthalpy drop:
 
 ```text
 ηt = (h1 − h2) / (h1 − h2s)
 h2 = h1 − ηt × (h1 − h2s)
 ```
 
-For an actual outlet inside the saturation dome, quality is:
+For an actual outlet inside the dome, `x2 = (h2 − hf)/(hg − hf)`. Quality is undefined for superheated steam and the interface reports it as **DRY / SUPERHEATED**.
+
+Pump work uses saturated-liquid volume from Region 1 when available:
 
 ```text
-x2 = (h2 − hf,cond) / hfg,cond
+wp ≈ vf × (Pboiler − Pcondenser)
+Wt = ṁ × (h1 − h2)
+Wp = ṁ × wp
+Qin = ṁ × (h1 − hf − wp)
+Wnet = Wt − Wp
+Pelectric = 0.98 × Wnet
+ηcycle = Wnet / Qin
+Qout = Qin − Wnet
 ```
 
-Quality exists only for a saturated liquid–vapor mixture. Superheated exhaust is reported as **DRY / SUPERHEATED**, with no numeric quality.
+The model's reporting boundary is `Qin = Wnet + Qout`; generator conversion is a nested split of net shaft work into electric output and generator loss. The full-cycle pump correction is included in `Wnet` and in the heat-input state. As before, turbine efficiency, generator efficiency and the idealized plant boundary are user-facing assumptions, not detailed equipment models.
 
-### 3. Pump, heat, and power
+## What is not modeled
 
-Liquid pump work is estimated using nearly incompressible water:
+The cycle omits Region 3 properties, reheat, staged turbines, pressure drops, detailed boiler/condenser heat transfer, moisture separation, control systems and equipment-specific performance maps. The 98% generator efficiency is fixed. RPM is a visual mapping from output, not a machine-speed calculation. T–s and P–v graphics are explanatory diagrams; the saturation dome uses IF97 data only where implemented.
 
-```text
-wp ≈ vwater × (Pboiler − Pcondenser)
-vwater ≈ 0.001 m³/kg
-```
+## Verification
 
-With pressure in kPa, `wp` is in kJ/kg. The rates are:
+The Region 1, Region 2 and Region 4 equations are checked against the official IAPWS computer-program verification tables. Exact points, numeric tolerances and boundaries are listed in [steam reference benchmarks](steam-reference-benchmarks.md). These equation checks do not validate the whole Rankine plant model, the Region 3 fallback, or equipment assumptions.
 
-```text
-Ẇturbine = ṁ × (h1 − h2)
-Ẇpump = ṁ × wp
-Ẇnet = Ẇturbine − Ẇpump
-Q̇in = ṁ × (h1 − h4), where h4 ≈ hf,cond + wp
-Ṗelectric = ηg × Ẇnet
-ηcycle = Ẇnet / Q̇in
-```
-
-The condenser rejection follows the cycle first law:
-
-```text
-Q̇out = Q̇in − Ẇnet
-Q̇in + Ẇpump = Ẇturbine + Q̇out
-```
-
-The Sankey begins at boiler heat input and divides it into **net shaft work** and condenser heat rejection. Net shaft work then divides into electricity and generator loss. These are nested boundaries: do not add generator loss a second time to the heat-input split.
-
-### 4. Turbine animation
-
-The displayed RPM is an illustrative mapping of electrical output to a 0–3600 RPM range. Real turbine speed is determined by machine design, pole count, grid frequency, and control systems; this display is not a mechanical prediction.
-
-## Physics source and reference
-
-Steam properties in engineering calculations are normally calculated with an equation of state such as IAPWS-IF97, which supplies region-specific thermodynamic relations for water and steam. Energy Lab currently uses rounded saturation data plus simplified superheat and pump approximations so the calculations stay inspectable in a small client-side project.
-
-- [IAPWS-IF97 revised release (official)](https://iapws.org/technical-guidance/release/IF97-Rev)
-- [NIST tabulation of water properties based on IAPWS-95](https://www.nist.gov/publications/thermodynamic-properties-water-tabulation-iapws-formulation-1995-thermodynamic)
-- [NIST steam tables PDF](https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=906704)
-
-The references establish the accepted property framework. Energy Lab’s compact table and correlations are rounded teaching data, not a claim of exact IAPWS evaluation; see [model limits](model-limitations.md) and the [accuracy roadmap](roadmap.md).
+Primary references: [official IAPWS-IF97 release](https://iapws.org/technical-guidance/release/IF97-Rev) and [NIST thermodynamic properties of water based on IAPWS-95](https://www.nist.gov/publications/thermodynamic-properties-water-tabulation-iapws-formulation-1995-thermodynamic).

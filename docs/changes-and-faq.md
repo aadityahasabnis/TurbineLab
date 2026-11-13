@@ -29,7 +29,7 @@ The “What changed?” sentence describes the current operating point. To study
 
 ### Why does raising pressure not always raise power?
 
-Power depends on both the energy drop per kilogram and the amount of steam flowing. Higher pressure can change the inlet state and reduce exhaust quality. The model's compact property approximations also mean its exact curve should be treated as educational, not universal.
+Power depends on both the energy drop per kilogram and the amount of steam flowing. Higher pressure can change the inlet state and reduce exhaust quality. The supported subcritical property states use IAPWS-IF97; the dense-fluid fallback and simplified equipment model mean the complete power curve is still an educational estimate, not a universal plant prediction.
 
 ### Why can the turbine show “DRY” instead of 100% quality?
 
@@ -49,7 +49,7 @@ For the same thermodynamic states, heat and work rates both scale with mass flow
 
 ### What does the T–s diagram show?
 
-It plots temperature against entropy. The inlet and exhaust markers respond to the calculated states. The saturation dome is schematic, so it helps explain the regions but should not be read as precise property data.
+It plots temperature against entropy. The inlet and exhaust markers respond to the calculated states. The saturation dome uses IF97 saturation properties in the implemented range, but the curve paths and process assumptions are schematic. Read the method label and model limits before interpreting a result.
 
 ### How should I make a fair comparison?
 

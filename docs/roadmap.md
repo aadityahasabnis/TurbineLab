@@ -14,8 +14,8 @@ The wind and PV models are intentionally modest educational estimates. The added
 
 ## Next: strengthen model evidence and teaching flow
 
-1. Compare the simplified wind and PV outputs with selected published reference examples and publish those fixtures with provenance and tolerances.
-2. Improve the steam property engine against published IAPWS/NIST states before claiming validated thermodynamic accuracy.
+1. **Completed at shared equation boundaries:** publish sourced wind-stream and PV DC equation fixtures with regression tolerances. Whole-system comparison against SAM/PVWatts remains future work until inputs and model boundaries can be aligned; see [renewable reference benchmarks](reference-benchmarks.md).
+2. **Completed for Regions 1, 2, and 4:** implement the IF97 Gibbs and saturation equations and regression-check against the official verification tables. Region 3 remains an explicitly labeled approximation fallback; whole-cycle/equipment accuracy is not validated. See [steam reference benchmarks](steam-reference-benchmarks.md).
 3. Review keyboard/touch access and reduced-motion behavior across all modules, and improve mobile chart descriptions.
 4. Replace synthetic profiles with versioned, cited weather inputs only after explicit source selection, data-quality handling, and interval validation. Annual estimates require that work first.
 

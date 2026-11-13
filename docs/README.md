@@ -9,6 +9,8 @@ Energy Lab includes steam, wind, and solar PV operating-point simulators. The in
 3. Change one input at a time and inspect the output, curve, and energy boundary.
 4. Use **Compare** to pin the renewable setup before changing controls; steam has its own comparison control.
 5. Read the [model notes](energy-models.md) for assumptions and limitations.
+6. Review the [renewable reference benchmarks](reference-benchmarks.md) for published equation fixtures, provenance, and numeric tolerances.
+7. Review the [steam reference benchmarks](steam-reference-benchmarks.md) for IF97 property verification points and region coverage.
 
 ## Steam learning material
 
@@ -18,6 +20,8 @@ Energy Lab includes steam, wind, and solar PV operating-point simulators. The in
 - [Steam model assumptions](model-limitations.md) — what the cycle leaves out.
 - [Presentation run-of-show](presentation.md) — a short classroom demonstration.
 - [Implementation roadmap](roadmap.md) — model validation and future extensions.
+- [Renewable reference benchmarks](reference-benchmarks.md) — reference fixtures and the limits of the comparisons.
+- [Steam reference benchmarks](steam-reference-benchmarks.md) — published IF97 property points and the unimplemented Region 3 boundary.
 
 ## Learning objective
 

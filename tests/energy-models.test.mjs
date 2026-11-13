@@ -6,6 +6,9 @@ import { WIND_DEFAULTS, clampWindInputs, computeWind } from "../js/models/wind.m
 import { HYBRID_DEFAULTS, clampHybridInputs, simulateHybrid } from "../js/models/hybrid.mjs";
 import { buildDaySeries, resourceAt } from "../js/models/profiles.mjs";
 import { readSharedState } from "../js/sharing.mjs";
+import { readFileSync } from "node:fs";
+
+const renewableBenchmarks = JSON.parse(readFileSync(new URL("./fixtures/renewable-benchmarks.json", import.meta.url), "utf8"));
 
 test("wind operating states honor cut-in, rated, and cut-out boundaries", () => {
   const base = { ...WIND_DEFAULTS };
@@ -92,6 +95,20 @@ test("PV operating boundary is finite, bounded, and energy-balanced", () => {
 test("PV controls clamp to their declared ranges", () => {
   const inputs = clampPVInputs({ capacityKW: -2, irradianceWm2: 5000, ambientTempC: -100, systemLossPct: 90 });
   for (const [key, [min, max]] of Object.entries(PV_RANGES)) assert.ok(inputs[key] >= min && inputs[key] <= max);
+});
+
+test("wind and PV reproduce published equation fixtures at the stated boundaries", () => {
+  const calculate = {
+    wind: computeWind,
+    "solar-pv": computeSolarPV
+  };
+  for (const fixture of renewableBenchmarks.fixtures) {
+    const result = calculate[fixture.technology](fixture.inputs);
+    assert.ok(Number.isFinite(result[fixture.outputKey]), `${fixture.id} returned a finite ${fixture.outputKey}`);
+    assert.ok(Math.abs(result[fixture.outputKey] - fixture.expectedKW) <= fixture.toleranceKW,
+      `${fixture.id}: expected ${fixture.expectedKW} ± ${fixture.toleranceKW} kW, received ${result[fixture.outputKey]} kW`);
+    if (fixture.expectedCellTempC !== undefined) assert.ok(Math.abs(result.cellTempC - fixture.expectedCellTempC) < 1e-12);
+  }
 });
 
 test("source results expose the shared electric-power boundary", () => {

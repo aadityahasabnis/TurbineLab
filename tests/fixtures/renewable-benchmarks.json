@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Regression fixtures for model components that share a published equation and boundary.",
+  "toleranceMeaning": "Absolute numerical regression tolerance in kW. This is not a physical-model uncertainty or an accuracy claim.",
+  "fixtures": [
+    {
+      "id": "nrel-sam-wind-stream-equation-29",
+      "technology": "wind",
+      "reference": {
+        "title": "Reference Manual for the System Advisor Model's Wind Power Performance Model",
+        "organization": "National Renewable Energy Laboratory",
+        "url": "https://docs.nrel.gov/docs/fy14osti/60570.pdf",
+        "equation": "29",
+        "boundary": "Theoretical power in the wind across the rotor disk before turbine capture and conversion."
+      },
+      "inputs": {
+        "windSpeedMs": 8,
+        "rotorRadiusM": 10,
+        "airDensityKgM3": 1.225,
+        "ratedPowerKW": 15000,
+        "cutInMs": 1,
+        "ratedMs": 12,
+        "cutOutMs": 25,
+        "powerCoefficient": 0.45,
+        "drivetrainEfficiency": 0.94
+      },
+      "outputKey": "availablePowerKW",
+      "expectedKW": 98.52034561657592,
+      "toleranceKW": 0.001
+    },
+    {
+      "id": "nrel-pvwatts-v5-dc-module-equation-8",
+      "technology": "solar-pv",
+      "reference": {
+        "title": "PVWatts Version 5 Manual",
+        "organization": "National Renewable Energy Laboratory",
+        "url": "https://docs.nrel.gov/docs/fy14osti/62641.pdf",
+        "equation": "8",
+        "boundary": "PV array DC nameplate power adjusted by plane-of-array irradiance and a linear module temperature coefficient. Irradiance is treated as transmitted POA and cell temperature is supplied by the fixture's documented NOCT relation."
+      },
+      "inputs": {
+        "capacityKW": 4,
+        "irradianceWm2": 800,
+        "ambientTempC": 25,
+        "systemLossPct": 14,
+        "noctC": 45,
+        "moduleEfficiency": 0.2,
+        "temperatureCoefficient": -0.0047,
+        "inverterEfficiency": 0.96
+      },
+      "expectedCellTempC": 50,
+      "outputKey": "dcPowerKW",
+      "expectedKW": 2.824,
+      "toleranceKW": 0.0001
+    }
+  ]
+}

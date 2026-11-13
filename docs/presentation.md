@@ -30,7 +30,7 @@ By the end, the audience can:
 2. **The loop:** Pump → boiler → turbine/generator → condenser.
 3. **One live experiment:** Change one input; record power, efficiency, and exhaust state.
 4. **The accounting:** Explain the Sankey boundary and generator conversion.
-5. **The evidence:** Show assumptions today and the IAPWS reference-validation plan next.
+5. **The evidence:** Show the live property-method label and the IAPWS verification fixture notes. Explain that property checks do not validate the whole plant cycle.
 6. **Audience challenge:** Find a higher-output setup without ignoring efficiency or exhaust moisture.
 
 ## Presenter checklist

@@ -1,3 +1,6 @@
+import { IF97_LIMITS, region2, saturatedProperties } from "./if97.mjs";
+
+// Sparse legacy data retained solely for the documented Region 3 approximation path.
 const STEAM_TABLE = [
   { p: 0.001, ts: 7.0, hf: 29.3, hfg: 2484, sf: 0.106, sfg: 8.87 },
   { p: 0.005, ts: 32.9, hf: 137.8, hfg: 2424, sf: 0.476, sfg: 7.92 },
@@ -27,7 +30,7 @@ export const DEFAULTS = Object.freeze({
 });
 
 export const INPUT_RANGES = Object.freeze({
-  // The compact saturation table is intentionally kept below the critical point.
+  // UI permits dense-fluid states; those remain available through an explicitly labeled fallback.
   pressureMPa: [1, 20],
   tempC: [200, 600],
   flowKgS: [1, 100],
@@ -44,6 +47,20 @@ export const PRESETS = Object.freeze({
 
 export function interpolateSaturation(pressureMPa) {
   const pressure = Math.min(Math.max(pressureMPa, STEAM_TABLE[0].p), STEAM_TABLE.at(-1).p);
+  if (pressure <= IF97_LIMITS.maxSaturationPressureMPa) {
+    const saturation = saturatedProperties(pressure);
+    return {
+      p: pressure,
+      ts: saturation.tK - 273.15,
+      hf: saturation.liquid.h,
+      hfg: saturation.vapor.h - saturation.liquid.h,
+      sf: saturation.liquid.s,
+      sfg: saturation.vapor.s - saturation.liquid.s,
+      vf: saturation.liquid.v,
+      vg: saturation.vapor.v,
+      propertyMethod: "iapws-if97-regions-1-2-and-4"
+    };
+  }
   let upperIndex = STEAM_TABLE.findIndex((row) => row.p >= pressure);
   if (upperIndex <= 0) return { ...STEAM_TABLE[0] };
   if (upperIndex === -1) return { ...STEAM_TABLE.at(-1) };
@@ -60,14 +77,14 @@ function condenserSaturation(condenserKPa) {
 }
 
 function steamHeatCapacity(pressureMPa) {
-  // A compact pressure-aware approximation; real steam properties require IAPWS-IF97.
+  // Legacy Region 3 fallback only; supported Regions 1/2 use IAPWS-IF97 properties.
   return 2.08 + 0.16 * pressureMPa;
 }
 const WATER_GAMMA = 0.001; // Approximate liquid specific volume, m³/kg.
 const STEAM_GAS_CONSTANT = 0.4615; // kJ/(kg·K), approximated as ideal vapor.
 const GENERATOR_EFFICIENCY = 0.98;
 
-function inletState(pressureMPa, temperatureC) {
+function approximateInletState(pressureMPa, temperatureC) {
   const saturation = interpolateSaturation(pressureMPa);
   const cp = steamHeatCapacity(pressureMPa);
   const effectiveTempC = Math.max(temperatureC, saturation.ts);
@@ -78,8 +95,8 @@ function inletState(pressureMPa, temperatureC) {
   return { h, s: entropy, cp, effectiveTempC, saturation };
 }
 
-export function computeAll(inputs) {
-  const inlet = inletState(inputs.pressureMPa, inputs.tempC);
+function computeApproximate(inputs) {
+  const inlet = approximateInletState(inputs.pressureMPa, inputs.tempC);
   const exhaust = condenserSaturation(inputs.condenserKPa);
   const turbineEfficiency = inputs.turbineEff / 100;
   // Isentropic expansion: s2s = s1. Use saturated-mixture properties when inside the dome;
@@ -147,8 +164,90 @@ export function computeAll(inputs) {
     saturationTempC: inlet.saturation.ts,
     isentropicQuality,
     specificVolume: exitSpecificVolume,
-    inletSpecificVolume
+    inletSpecificVolume,
+    propertyMethod: "legacy-approximation"
   };
+}
+
+function solveRegion2At(pMPa, property, target, lowerK, upperK) {
+  let low = lowerK;
+  let high = upperK;
+  for (let i = 0; i < 64; i += 1) {
+    const middle = (low + high) / 2;
+    if (region2(pMPa, middle)[property] < target) low = middle;
+    else high = middle;
+  }
+  return region2(pMPa, (low + high) / 2);
+}
+
+function computeIF97(inputs) {
+  const boilerSaturation = saturatedProperties(inputs.pressureMPa);
+  const condenserSaturation = saturatedProperties(inputs.condenserKPa / 1000);
+  const requestedTempK = inputs.tempC + 273.15;
+  const inletTempK = Math.max(requestedTempK, boilerSaturation.tK);
+  const inlet = region2(inputs.pressureMPa, inletTempK);
+  const exhaustPressureMPa = inputs.condenserKPa / 1000;
+  const turbineEfficiency = inputs.turbineEff / 100;
+  const hf = condenserSaturation.liquid.h;
+  const hg = condenserSaturation.vapor.h;
+  const sf = condenserSaturation.liquid.s;
+  const sg = condenserSaturation.vapor.s;
+  const vf = condenserSaturation.liquid.v;
+  const vg = condenserSaturation.vapor.v;
+  const isentropicQuality = Math.min(1, Math.max(0, (inlet.s - sf) / (sg - sf)));
+  const isentropicEnthalpy = inlet.s <= sg
+    ? hf + isentropicQuality * (hg - hf)
+    : solveRegion2At(exhaustPressureMPa, "s", inlet.s, condenserSaturation.tK, 1073.15).h;
+  const turbineSpecificWork = Math.max(0, (inlet.h - isentropicEnthalpy) * turbineEfficiency);
+  const exitEnthalpy = inlet.h - turbineSpecificWork;
+  const exitQuality = exitEnthalpy <= hg
+    ? Math.min(1, Math.max(0, (exitEnthalpy - hf) / (hg - hf)))
+    : null;
+  const exit = exitQuality === null
+    ? solveRegion2At(exhaustPressureMPa, "h", exitEnthalpy, condenserSaturation.tK, 1073.15)
+    : null;
+  const exitEntropy = exit ? exit.s : sf + exitQuality * (sg - sf);
+  const exitTempC = exit ? exit.t - 273.15 : condenserSaturation.tK - 273.15;
+  const exitSpecificVolume = exit ? exit.v : vf + exitQuality * (vg - vf);
+  const pumpSpecificWork = vf * (inputs.pressureMPa * 1000 - inputs.condenserKPa);
+  const heatInSpecific = inlet.h - (hf + pumpSpecificWork);
+  const turbineWorkKW = inputs.flowKgS * turbineSpecificWork;
+  const pumpWorkKW = inputs.flowKgS * pumpSpecificWork;
+  const heatInKW = inputs.flowKgS * Math.max(1, heatInSpecific);
+  const netWorkKW = turbineWorkKW - pumpWorkKW;
+  const workMW = netWorkKW / 1000;
+  const heatInMW = heatInKW / 1000;
+  const powerMW = Math.max(0, workMW * GENERATOR_EFFICIENCY);
+
+  return {
+    h1: inlet.h, s1: inlet.s, h2: exitEnthalpy, s2: exitEntropy,
+    exitTempC, exitQuality, powerMW,
+    efficiency: Math.min(1, Math.max(0, netWorkKW / heatInKW)),
+    workMW, turbineWorkMW: turbineWorkKW / 1000, netWorkMW: workMW,
+    pumpWorkMW: pumpWorkKW / 1000, heatInMW,
+    wasteMW: Math.max(0, heatInMW - workMW),
+    generatorLossMW: workMW - powerMW,
+    rpm: Math.min(3600, Math.max(0, (powerMW / 100) * 3600)),
+    inletTempC: inletTempK - 273.15,
+    saturationTempC: boilerSaturation.tK - 273.15,
+    isentropicQuality,
+    specificVolume: exitSpecificVolume,
+    inletSpecificVolume: inlet.v,
+    propertyMethod: "iapws-if97-regions-1-2-and-4"
+  };
+}
+
+export function computeAll(inputs) {
+  if (inputs.pressureMPa <= IF97_LIMITS.maxSaturationPressureMPa) {
+    try {
+      return computeIF97(inputs);
+    } catch (error) {
+      // Retain coverage for states beyond the implemented region boundaries,
+      // while identifying their result as approximate in the returned model tag.
+      if (!(error instanceof RangeError)) throw error;
+    }
+  }
+  return computeApproximate(inputs);
 }
 
 export function getQualityStatus(quality) {

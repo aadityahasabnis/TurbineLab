@@ -16,8 +16,9 @@ Energy Lab is an educational experience for exploring cause and effect. Its outp
 
 ## Steam Rankine cycle
 
-- Saturation data is sparse and rounded; superheated properties use a simplified heat-capacity relation and pump work uses constant liquid specific volume.
-- Turbine stages, reheat, detailed boiler/condenser losses, and equipment-specific controls are omitted. Generator efficiency is fixed at 98%.
+- Boiler pressures up to 16.5292 MPa use IAPWS-IF97 Region 1, Region 2 and Region 4 equations, checked against the official verification tables. Above that pressure, the complete cycle uses a legacy approximation because high-side saturation can require unsupported dense-fluid Region 3 properties; the UI identifies this pressure-based fallback. It is not validated against IAPWS.
+- Property-equation verification does not validate the complete Rankine plant output. Turbine and generator efficiencies are simplified, generator efficiency is fixed at 98%, and component pressure drops and heat-transfer losses are omitted.
+- Turbine stages, reheat, detailed boiler/condenser losses, and equipment-specific controls are omitted.
 - RPM is a visual mapping, not a machine-speed prediction. The T–s dome and P–v paths include schematic elements.
 - Existing coal, nuclear, solar/CSP, and geothermal cards represent illustrative steam-cycle conditions, not complete source-specific plants.
 

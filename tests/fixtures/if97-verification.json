@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "reference": "IAPWS R7-97(2012), IF97-Rev.pdf, official computer-program verification tables",
+  "url": "https://www.iapws.org/relguide/IF97-Rev.pdf",
+  "fixtures": [
+    {
+      "id": "region-1-table-5",
+      "region": 1,
+      "inputs": { "pressureMPa": 3, "temperatureK": 300 },
+      "expected": { "h": 115.331273, "s": 0.392294792, "v": 0.00100215168 },
+      "tolerance": { "h": 0.000001, "s": 0.000000001, "v": 0.00000000001 }
+    },
+    {
+      "id": "region-1-table-5-superheated-boundary-example",
+      "region": 1,
+      "inputs": { "pressureMPa": 3, "temperatureK": 500 },
+      "expected": { "h": 975.542239, "s": 2.58041912 },
+      "tolerance": { "h": 0.000001, "s": 0.00000001 }
+    },
+    {
+      "id": "region-2-table-15-low-pressure-vapor",
+      "region": 2,
+      "inputs": { "pressureMPa": 0.0035, "temperatureK": 700 },
+      "expected": { "h": 3335.68375, "s": 10.1749996, "v": 92.3015898 },
+      "tolerance": { "h": 0.00001, "s": 0.0000001, "v": 0.0000001 }
+    },
+    {
+      "id": "region-2-table-15-high-pressure-vapor",
+      "region": 2,
+      "inputs": { "pressureMPa": 30, "temperatureK": 700 },
+      "expected": { "h": 2631.49474, "s": 5.17540298, "v": 0.00542946619 },
+      "tolerance": { "h": 0.00001, "s": 0.00000001, "v": 0.0000000001 }
+    }
+  ],
+  "saturationTemperature": [
+    { "pressureMPa": 0.1, "temperatureK": 372.755919 },
+    { "pressureMPa": 1, "temperatureK": 453.035632 },
+    { "pressureMPa": 10, "temperatureK": 584.149488 }
+  ],
+  "saturationPressure": [
+    { "temperatureK": 300, "pressureMPa": 0.00353658941 },
+    { "temperatureK": 500, "pressureMPa": 2.63889776 },
+    { "temperatureK": 600, "pressureMPa": 12.3443146 }
+  ],
+  "saturationCurveTolerance": { "temperatureK": 0.000001, "pressureMPa": 0.00000002 }
+}
